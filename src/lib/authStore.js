@@ -2,8 +2,8 @@ import { writable } from 'svelte/store';
 import { Client, Account } from 'appwrite';
 
 const client = new Client()
-  .setEndpoint(import.meta.env.VITE_APPWRITE_ENDPOINT)
-  .setProject(import.meta.env.VITE_APPWRITE_PROJECT_ID);
+  .setEndpoint('https://fra.cloud.appwrite.io/v1')
+  .setProject('geolocatr');
 
 export const account = new Account(client);
 export const auth = writable(null);
