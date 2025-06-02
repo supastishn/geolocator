@@ -22,7 +22,7 @@
   let imageBase64 = null; // stores the original image base64 for iteration
 
   // Manual iteration workflow state
-  let iterationPhase = 'initial'; // 'initial', 'after-first', 'done', 'processing-iteration'
+  // let iterationPhase = 'initial'; // Removed: no longer needed
 
   // Helper to parse XML for <thinking>, <latitude>, <longitude>, <city>, <country>
   function parseXmlFields(xml) {
@@ -79,7 +79,7 @@
     xmlDoc = null;
     mapImage = null;
     imageBase64 = null;
-    iterationPhase = 'initial';
+    // Removed: iterationPhase
 
     try {
       imageBase64 = await readFileAsBase64(imageFile[0]);
@@ -96,13 +96,11 @@
           country = fields.country;
           xmlDoc = fields.xmlDoc;
 
-          // If satellite is requested, store coordinates and move to next phase
+          // If satellite is requested, store coordinates
           if (fields.hasSatellite && latitude && longitude) {
             mapImage = await getSatelliteImage(latitude, longitude);
-            iterationPhase = 'after-first';
-          } else if (fields.hasAnswer) {
-            iterationPhase = 'done';
-          }
+            // Removed: iterationPhase
+          } // Removed: else if (fields.hasAnswer) { iterationPhase = 'done'; }
         }
       );
       finalXml = streamingXml;
@@ -110,7 +108,16 @@
       isLoading = false;
       streaming = false;
 
-      if (!location && iterationPhase !== 'after-first') {
+      // Automated iteration if satellite is needed and result not found
+      if (mapImage && !result) {
+        try {
+          await handleIterate();
+        } catch (err) {
+          error = err?.message || 'Iteration failed automatically';
+        }
+      }
+
+      if (!location && !mapImage) {
         error = "Failed to identify location. Please try another image.";
       }
     } catch (err) {
@@ -125,7 +132,7 @@
     isLoading = true;
     error = null;
     streaming = true;
-    iterationPhase = 'processing-iteration';
+    // Removed: iterationPhase
 
     try {
       // Use stored imageBase64 and mapImage for dual-image iteration
@@ -149,9 +156,7 @@
 
           if (fields.hasSatellite && latitude && longitude) {
             mapImage = await getSatelliteImage(latitude, longitude);
-          } else if (fields.hasAnswer) {
-            iterationPhase = 'done';
-          }
+          } // Removed: else if (fields.hasAnswer) { iterationPhase = 'done'; }
         },
         mapImage // pass satellite image url for dual-image
       );
@@ -160,7 +165,7 @@
       isLoading = false;
       streaming = false;
 
-      if (!location && iterationPhase !== 'done') {
+      if (!location && !result) {
         error = "Failed to identify location. Please try another image.";
       }
     } catch (err) {
@@ -233,15 +238,6 @@
           {/if}
         </div>
       {/if}
-
-      {#if !isLoading && iterationPhase === 'after-first'}
-        <div class="satellite-view">
-          {#if mapImage}
-            <img src={mapImage} alt="Satellite view" class="satellite-image" />
-          {/if}
-          <button on:click={handleIterate}>Continue Iteration</button>
-        </div>
-      {/if}
     </div>
   {/if}
 
@@ -249,6 +245,12 @@
     <div class="xml-output debug-xml">
       <div class="title">Final XML Output:</div>
       <pre>{finalXml}</pre>
+    </div>
+  {/if}
+
+  {#if !isLoading && mapImage && !result}
+    <div class="satellite-view">
+      <img src={mapImage} alt="Satellite view" class="satellite-image" />
     </div>
   {/if}
 
