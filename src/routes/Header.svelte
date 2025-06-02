@@ -35,7 +35,7 @@
 <style>
 header {
 	backdrop-filter: blur(16px);
-	background: rgba(255, 255, 255, 0.8);
+	background: var(--color-secondary);
 	border-bottom: 1px solid var(--border-color);
 	position: sticky;
 	top: 0;
@@ -44,7 +44,7 @@ header {
 }
 
 [data-theme="dark"] header {
-	background: rgba(2, 6, 23, 0.95);
+	background: var(--color-secondary);
 	border-bottom: 1px solid #0f172a;
 }
 
