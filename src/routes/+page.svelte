@@ -11,25 +11,72 @@
   let finalXml = '';
   let streaming = false;
 
+  // New state for parsed info
+  let thinking = '';
+  let latitude = '';
+  let longitude = '';
+  let city = '';
+  let country = '';
+  let canIterate = false;
+  let xmlDoc = null;
+
+  // Helper to parse XML for <thinking>, <latitude>, <longitude>, <city>, <country>
+  function parseXmlFields(xml) {
+    try {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(xml, "text/xml");
+      return {
+        thinking: doc.querySelector('thinking')?.textContent || '',
+        latitude: doc.querySelector('latitude')?.textContent || '',
+        longitude: doc.querySelector('longitude')?.textContent || '',
+        city: doc.querySelector('city')?.textContent || '',
+        country: doc.querySelector('country')?.textContent || '',
+        hasSatellite: !!doc.querySelector('satellite'),
+        hasAnswer: !!doc.querySelector('answer'),
+        xmlDoc: doc
+      };
+    } catch {
+      return {};
+    }
+  }
+
+  // Initial submit: only 1 iteration, show info, allow user to iterate
   const handleSubmit = async () => {
     if (!imageFile) return;
-    
+
     isLoading = true;
     error = null;
     result = null;
     streamingXml = '';
+    finalXml = '';
     streaming = true;
-    
+    thinking = '';
+    latitude = '';
+    longitude = '';
+    city = '';
+    country = '';
+    canIterate = false;
+    xmlDoc = null;
+
     try {
       const reader = new FileReader();
       reader.readAsDataURL(imageFile[0]);
       reader.onload = async () => {
         const imageData = reader.result;
+        // Only do 1 iteration for initial run
         const location = await getLocation(
           imageData,
-          5,
+          1,
           (xml) => {
             streamingXml = xml;
+            const fields = parseXmlFields(xml);
+            thinking = fields.thinking;
+            latitude = fields.latitude;
+            longitude = fields.longitude;
+            city = fields.city;
+            country = fields.country;
+            canIterate = fields.hasSatellite && !fields.hasAnswer;
+            xmlDoc = fields.xmlDoc;
           }
         );
         finalXml = streamingXml;
@@ -37,7 +84,54 @@
         isLoading = false;
         streaming = false;
 
-        if (!location) {
+        if (!location && !canIterate) {
+          error = "Failed to identify location. Please try another image.";
+        }
+      };
+    } catch (err) {
+      error = err.message;
+      isLoading = false;
+      streaming = false;
+    }
+  };
+
+  // User triggers next iteration (satellite)
+  const handleIterate = async () => {
+    isLoading = true;
+    error = null;
+    streaming = true;
+    canIterate = false;
+
+    try {
+      // Use the last XML as context, and run getLocation for 1 more iteration
+      // We need to pass the previous XML and image again
+      // We'll use the same image, and let getLocation handle the next step
+      const reader = new FileReader();
+      reader.readAsDataURL(imageFile[0]);
+      reader.onload = async () => {
+        const imageData = reader.result;
+        // Now run getLocation for 1 more iteration, using the previous XML as context
+        const location = await getLocation(
+          imageData,
+          1,
+          (xml) => {
+            streamingXml = xml;
+            const fields = parseXmlFields(xml);
+            thinking = fields.thinking;
+            latitude = fields.latitude;
+            longitude = fields.longitude;
+            city = fields.city;
+            country = fields.country;
+            canIterate = fields.hasSatellite && !fields.hasAnswer;
+            xmlDoc = fields.xmlDoc;
+          }
+        );
+        finalXml = streamingXml;
+        result = location;
+        isLoading = false;
+        streaming = false;
+
+        if (!location && !canIterate) {
           error = "Failed to identify location. Please try another image.";
         }
       };
@@ -79,24 +173,49 @@
       <pre>{streamingXml.split('\n').slice(-8).join('\n')}</pre>
     </div>
   {/if}
-  
+
   {#if error}
     <div class="error">{error}</div>
   {/if}
-  
+
+  {#if !isLoading && (thinking || latitude || longitude)}
+    <div class="ai-info">
+      <h2>AI Reasoning</h2>
+      {#if thinking}
+        <div class="thinking">
+          <strong>Thinking:</strong>
+          <div class="thinking-box">{thinking}</div>
+        </div>
+      {/if}
+      <div class="coords-row">
+        {#if latitude}
+          <span><strong>Latitude:</strong> {latitude}</span>
+        {/if}
+        {#if longitude}
+          <span><strong>Longitude:</strong> {longitude}</span>
+        {/if}
+      </div>
+    </div>
+  {/if}
+
+  {#if !isLoading && canIterate}
+    <div class="iterate-row">
+      <button on:click={handleIterate}>Iterate with Satellite</button>
+    </div>
+  {/if}
+
   {#if !isLoading && finalXml}
     <div class="xml-output debug-xml">
       <div class="title">Final XML Output:</div>
       <pre>{finalXml}</pre>
     </div>
   {/if}
-  
+
   {#if result}
     <div class="result">
       <h2>Location Found:</h2>
       <p class="location">{result.city}, {result.country}</p>
       <p class="coordinates">Coordinates: {result.latitude}, {result.longitude}</p>
-      
       <MapView 
         lat={result.latitude} 
         lng={result.longitude} 
@@ -246,5 +365,44 @@
     color: var(--color-theme-3);
     font-family: var(--font-mono);
     margin-bottom: 1.5rem;
+  }
+  .ai-info {
+    background: #fafdff;
+    border: 1.5px solid #c3d0e0;
+    border-radius: 10px;
+    padding: 1.2rem 1.5rem;
+    margin: 1.5rem 0 1rem 0;
+    box-shadow: 0 1px 4px rgba(64,117,166,0.07);
+  }
+  .ai-info h2 {
+    color: var(--color-theme-2);
+    font-size: 1.2rem;
+    margin-bottom: 0.7rem;
+    font-weight: 700;
+  }
+  .thinking {
+    margin-bottom: 0.7rem;
+  }
+  .thinking-box {
+    background: #f6fafd;
+    border-radius: 6px;
+    padding: 0.7em 1em;
+    font-family: var(--font-mono);
+    color: #1a2636;
+    font-size: 1.05em;
+    margin-top: 0.2em;
+    word-break: break-word;
+  }
+  .coords-row {
+    display: flex;
+    gap: 2em;
+    font-size: 1.1em;
+    margin-top: 0.5em;
+    color: var(--color-theme-3);
+  }
+  .iterate-row {
+    display: flex;
+    justify-content: center;
+    margin: 1.2rem 0 0.5rem 0;
   }
 </style>
