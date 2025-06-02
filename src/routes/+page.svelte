@@ -17,10 +17,12 @@
   let longitude = '';
   let city = '';
   let country = '';
-  let canIterate = false;
   let xmlDoc = null;
   let mapImage = null; // stores the satellite image URL for iteration
   let imageBase64 = null; // stores the original image base64 for iteration
+
+  // Manual iteration workflow state
+  let iterationPhase = 'initial'; // 'initial', 'after-first', 'done', 'processing-iteration'
 
   // Helper to parse XML for <thinking>, <latitude>, <longitude>, <city>, <country>
   function parseXmlFields(xml) {
@@ -44,6 +46,23 @@
     }
   }
 
+  // Helper to get satellite image URL (should match geolocator.js)
+  async function getSatelliteImage(lat, lng, apiKey) {
+    // No longer using Google Maps API, return a placeholder or OSM static map
+    // OpenStreetMap does not provide free static satellite images, so we return a standard map
+    return `https://staticmap.openstreetmap.de/staticmap.php?center=${lat},${lng}&zoom=15&size=600x400&markers=${lat},${lng},red-pushpin`;
+  }
+
+  // Helper to read file as base64
+  function readFileAsBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
   // Initial submit: only 1 iteration, show info, allow user to iterate
   const handleSubmit = async () => {
     if (!imageFile) return;
@@ -59,53 +78,45 @@
     longitude = '';
     city = '';
     country = '';
-    canIterate = false;
     xmlDoc = null;
     mapImage = null;
     imageBase64 = null;
+    iterationPhase = 'initial';
 
     try {
-      const reader = new FileReader();
-      reader.readAsDataURL(imageFile[0]);
-      reader.onload = async () => {
-        try {
-          const imageData = reader.result;
-          imageBase64 = imageData;
-          // Only do 1 iteration for initial run
-          const location = await getLocation(
-            imageData,
-            1,
-            async (xml) => {
-              streamingXml = xml;
-              const fields = parseXmlFields(xml);
-              thinking = fields.thinking;
-              latitude = fields.latitude;
-              longitude = fields.longitude;
-              city = fields.city;
-              country = fields.country;
-              canIterate = fields.hasSatellite && !fields.hasAnswer;
-              xmlDoc = fields.xmlDoc;
-              if (fields.hasSatellite && latitude && longitude) {
-                mapImage = await getSatelliteImage(latitude, longitude, $settings.mapsKey);
-              }
-            }
-          );
-          finalXml = streamingXml;
-          result = location;
-          isLoading = false;
-          streaming = false;
+      imageBase64 = await readFileAsBase64(imageFile[0]);
+      // Only do 1 iteration for initial run
+      const location = await getLocation(
+        imageBase64,
+        async (xml) => {
+          streamingXml = xml;
+          const fields = parseXmlFields(xml);
+          thinking = fields.thinking;
+          latitude = fields.latitude;
+          longitude = fields.longitude;
+          city = fields.city;
+          country = fields.country;
+          xmlDoc = fields.xmlDoc;
 
-          if (!location && !canIterate) {
-            error = "Failed to identify location. Please try another image.";
+          // If satellite is requested, store coordinates and move to next phase
+          if (fields.hasSatellite && latitude && longitude) {
+            mapImage = await getSatelliteImage(latitude, longitude, $settings.mapsKey);
+            iterationPhase = 'after-first';
+          } else if (fields.hasAnswer) {
+            iterationPhase = 'done';
           }
-        } catch (err) {
-          error = err?.message || 'An error occurred during location analysis.';
-          isLoading = false;
-          streaming = false;
         }
-      };
+      );
+      finalXml = streamingXml;
+      result = location;
+      isLoading = false;
+      streaming = false;
+
+      if (!location && iterationPhase !== 'after-first') {
+        error = "Failed to identify location. Please try another image.";
+      }
     } catch (err) {
-      error = err?.message || 'An error occurred while reading the file.';
+      error = err?.message || 'An error occurred during location analysis.';
       isLoading = false;
       streaming = false;
     }
@@ -116,7 +127,7 @@
     isLoading = true;
     error = null;
     streaming = true;
-    canIterate = false;
+    iterationPhase = 'processing-iteration';
 
     try {
       // Use stored imageBase64 and mapImage for dual-image iteration
@@ -128,7 +139,6 @@
       }
       const location = await getLocation(
         imageBase64,
-        1,
         async (xml) => {
           streamingXml = xml;
           const fields = parseXmlFields(xml);
@@ -137,10 +147,12 @@
           longitude = fields.longitude;
           city = fields.city;
           country = fields.country;
-          canIterate = fields.hasSatellite && !fields.hasAnswer;
           xmlDoc = fields.xmlDoc;
+
           if (fields.hasSatellite && latitude && longitude) {
             mapImage = await getSatelliteImage(latitude, longitude, $settings.mapsKey);
+          } else if (fields.hasAnswer) {
+            iterationPhase = 'done';
           }
         },
         mapImage // pass satellite image url for dual-image
@@ -150,7 +162,7 @@
       isLoading = false;
       streaming = false;
 
-      if (!location && !canIterate) {
+      if (!location && iterationPhase !== 'done') {
         error = "Failed to identify location. Please try another image.";
       }
     } catch (err) {
@@ -159,12 +171,6 @@
       streaming = false;
     }
   };
-  // Helper to get satellite image URL (should match geolocator.js)
-  async function getSatelliteImage(lat, lng, apiKey) {
-    // No longer using Google Maps API, return a placeholder or OSM static map
-    // OpenStreetMap does not provide free static satellite images, so we return a standard map
-    return `https://staticmap.openstreetmap.de/staticmap.php?center=${lat},${lng}&zoom=15&size=600x400&markers=${lat},${lng},red-pushpin`;
-  }
 </script>
 
 <svelte:head>
@@ -229,12 +235,15 @@
           {/if}
         </div>
       {/if}
-    </div>
-  {/if}
 
-  {#if !isLoading && canIterate}
-    <div class="iterate-row">
-      <button on:click={handleIterate}>Iterate with Satellite</button>
+      {#if !isLoading && iterationPhase === 'after-first'}
+        <div class="satellite-view">
+          {#if mapImage}
+            <img src={mapImage} alt="Satellite view" class="satellite-image" />
+          {/if}
+          <button on:click={handleIterate}>Continue Iteration</button>
+        </div>
+      {/if}
     </div>
   {/if}
 
@@ -452,5 +461,21 @@
     display: flex;
     justify-content: center;
     margin: 1.2rem 0 0.5rem 0;
+  }
+
+  .satellite-view {
+    margin-top: 1.5rem;
+    text-align: center;
+  }
+
+  .satellite-image {
+    max-width: 350px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+  }
+
+  .satellite-view button {
+    margin: 0 auto;
   }
 </style>

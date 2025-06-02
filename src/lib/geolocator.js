@@ -42,12 +42,11 @@ function buildMessage(imageData, mapUrl, isIterate = false) {
 /**
  * getLocation with streaming support.
  * @param {string} imageData
- * @param {number} iterations
  * @param {(xmlChunk: string) => void} onStreamChunk - callback for streaming XML output
  * @param {string|null} mapUrl - optional satellite image url for iteration
  * @returns {Promise<object|null>}
  */
-export async function getLocation(imageData, iterations = 5, onStreamChunk = null, mapUrl = null) {
+export async function getLocation(imageData, onStreamChunk = null, mapUrl = null) {
   const settingsValue = get(settings);
   const messages = [{
     role: "system",
@@ -56,95 +55,74 @@ export async function getLocation(imageData, iterations = 5, onStreamChunk = nul
     role: "user",
     content: buildMessage(imageData, mapUrl, !!mapUrl)
   }];
-  
-  let locationData = null;
-  
-  for (let i = 0; i < iterations; i++) {
-    // Use OpenAI streaming API
-    const response = await fetch(`${settingsValue.baseUrl}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${settingsValue.apiKey}`
-      },
-      body: JSON.stringify({
-        model: settingsValue.model,
-        messages,
-        max_tokens: 1000,
-        stream: true
-      })
-    });
 
-    if (!response.ok) {
-      let err = 'Failed to get location';
-      try {
-        const data = await response.json();
-        err = data.error?.message || err;
-      } catch {}
-      throw new Error(err);
-    }
+  // Use OpenAI streaming API
+  const response = await fetch(`${settingsValue.baseUrl}/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${settingsValue.apiKey}`
+    },
+    body: JSON.stringify({
+      model: settingsValue.model,
+      messages,
+      max_tokens: 1000,
+      stream: true
+    })
+  });
 
-    // Stream the response
-    let content = '';
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder('utf-8');
-    let done = false;
-    while (!done) {
-      const { value, done: doneReading } = await reader.read();
-      done = doneReading;
-      if (value) {
-        const chunk = decoder.decode(value, { stream: true });
-        // OpenAI streams as "data: ..." lines
-        for (const line of chunk.split('\n')) {
-          if (line.startsWith('data: ')) {
-            const dataStr = line.replace('data: ', '').trim();
-            if (dataStr === '[DONE]') continue;
-            try {
-              const data = JSON.parse(dataStr);
-              const delta = data.choices?.[0]?.delta?.content;
-              if (delta) {
-                content += delta;
-                if (onStreamChunk) onStreamChunk(content);
-              }
-            } catch {}
-          }
+  if (!response.ok) {
+    let err = 'Failed to get location';
+    try {
+      const data = await response.json();
+      err = data.error?.message || err;
+    } catch {}
+    throw new Error(err);
+  }
+
+  // Stream the response
+  let content = '';
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder('utf-8');
+  let done = false;
+  while (!done) {
+    const { value, done: doneReading } = await reader.read();
+    done = doneReading;
+    if (value) {
+      const chunk = decoder.decode(value, { stream: true });
+      // OpenAI streams as "data: ..." lines
+      for (const line of chunk.split('\n')) {
+        if (line.startsWith('data: ')) {
+          const dataStr = line.replace('data: ', '').trim();
+          if (dataStr === '[DONE]') continue;
+          try {
+            const data = JSON.parse(dataStr);
+            const delta = data.choices?.[0]?.delta?.content;
+            if (delta) {
+              content += delta;
+              if (onStreamChunk) onStreamChunk(content);
+            }
+          } catch {}
         }
       }
     }
-
-    // Parse the streamed content as XML
-    const parser = new DOMParser();
-    const wrappedContent = `<root>${content}</root>`;
-    const xmlDoc = parser.parseFromString(wrappedContent, "text/xml");
-    
-    if (xmlDoc.querySelector('answer')) {
-      locationData = {
-        city: xmlDoc.querySelector('city')?.textContent || 'Unknown',
-        country: xmlDoc.querySelector('country')?.textContent || 'Unknown',
-        latitude: xmlDoc.querySelector('latitude')?.textContent || '0',
-        longitude: xmlDoc.querySelector('longitude')?.textContent || '0'
-      };
-      break;
-    }
-    
-    if (xmlDoc.querySelector('satellite')) {
-      const lat = xmlDoc.querySelector('latitude')?.textContent;
-      const lng = xmlDoc.querySelector('longitude')?.textContent;
-      
-      const nextMapUrl = await getSatelliteImage(lat, lng, settingsValue.mapsKey);
-      
-      messages.push({
-        role: "assistant",
-        content: content
-      }, {
-        role: "user",
-        content: buildMessage(imageData, nextMapUrl, true)
-      });
-      mapUrl = nextMapUrl;
-    }
   }
-  
-  return locationData;
+
+  // Parse the streamed content as XML
+  const parser = new DOMParser();
+  const wrappedContent = `<root>${content}</root>`;
+  const xmlDoc = parser.parseFromString(wrappedContent, "text/xml");
+
+  if (xmlDoc.querySelector('answer')) {
+    return {
+      city: xmlDoc.querySelector('city')?.textContent || 'Unknown',
+      country: xmlDoc.querySelector('country')?.textContent || 'Unknown',
+      latitude: xmlDoc.querySelector('latitude')?.textContent || '0',
+      longitude: xmlDoc.querySelector('longitude')?.textContent || '0'
+    };
+  }
+
+  return null;
 }
 
 function getSatelliteImage(lat, lng, apiKey) {
