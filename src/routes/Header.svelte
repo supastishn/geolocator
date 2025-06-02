@@ -25,16 +25,23 @@
         </li>
       </ul>
       <div class="nav-right">
-        {#if $auth}
-          <span class="user-email">{$auth.email}</span>
-          <button on:click={logout} class="auth-button">Logout</button>
-        {:else}
-          <a href="/login" class="auth-button">Login</a>
-          <a href="/register" class="auth-button register">Register</a>
-        {/if}
-        <button on:click={toggleTheme} class="theme-toggle">
-          {$theme === 'light' ? '🌙' : '☀️'}
-        </button>
+        <!-- Move theme toggle to separate container -->
+        <div class="theme-container">
+          <button on:click={toggleTheme} class="theme-toggle">
+            {$theme === 'light' ? '🌙' : '☀️'}
+          </button>
+        </div>
+
+        <!-- Auth container now only has authentication elements -->
+        <div class="auth-container">
+          {#if $auth}
+            <span class="user-email">{$auth.email}</span>
+            <button on:click={logout} class="auth-button">Logout</button>
+          {:else}
+            <a href="/login" class="auth-button">Login</a>
+            <a href="/register" class="auth-button register">Register</a>
+          {/if}
+        </div>
       </div>
     </div>
   </nav>
@@ -106,42 +113,38 @@ nav a:hover, nav a[aria-current] {
 }
 
 .theme-toggle {
-	background: var(--color-secondary);
-	border: none;
-	font-size: 1.25rem;
-	cursor: pointer;
-	padding: 0.5rem;
-	border-radius: var(--border-radius-sm);
-	transition: all 0.2s ease;
-	display: flex;
-	align-items: center;
-	justify-content: center;
+  background: var(--color-secondary);
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: var(--border-radius-sm);
+  transition: all 0.2s ease;
 }
 
 .theme-toggle:hover {
-	background: var(--border-color);
-	transform: scale(1.05);
+  background: var(--border-color);
+  transform: scale(1.05);
 }
 
 .user-email {
-	margin-right: 1rem;
-	font-size: 0.875rem;
-	color: var(--color-text);
+  margin-right: 1rem;
+  font-size: 0.875rem;
+  color: var(--color-text);
 }
 
 .auth-button {
-	padding: 0.5rem 1rem;
-	margin-left: 0.5rem;
-	background: var(--color-secondary);
-	border-radius: var(--border-radius-sm);
+  padding: 0.5rem 1rem;
+  background: var(--color-secondary);
+  border-radius: var(--border-radius-sm);
 }
 
 .auth-button:hover {
-	background: var(--border-color);
+  background: var(--border-color);
 }
 
 .register {
-	background: var(--color-primary);
-	color: white;
+  background: var(--color-primary);
+  color: white;
 }
 </style>
