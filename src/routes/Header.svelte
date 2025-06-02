@@ -12,10 +12,10 @@
     <div class="nav-content">
       <div class="nav-left">
         <a class="logo" href="/">
-          🛰️ AI Geolocator
+          <img src="/favicon.png" alt="AI Geolocator" class="logo-img" />
         </a>
       </div>
-      <ul class="nav-links">
+      <ul class="nav-links nav-links-center">
         <li aria-current={$page.url.pathname === '/' ? 'page' : undefined}>
           <a href="/">Home</a>
         </li>
@@ -53,16 +53,14 @@
 
 	.nav-content {
 	  display: flex;
-	  justify-content: space-between;
+	  justify-content: space-between; /* Ensure left and right alignment */
 	  align-items: center;
 	  max-width: 900px;
 	  margin: 0 auto;
 	  height: 60px;
 	}
 
-	.nav-left, .nav-right {
-	  flex: 1;
-	}
+	/* Removed flex: 1 from .nav-left, .nav-right */
 
 	.nav-links {
 	  display: flex;
