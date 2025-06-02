@@ -24,7 +24,7 @@
           <a href="/settings">Settings</a>
         </li>
       </ul>
-      <div class="nav-right">
+      <div class="nav-right" style="align-items: center; gap: 0.75rem; min-width: 180px; justify-content: flex-end;">
         <!-- Move theme toggle to separate container -->
         <div class="theme-container">
           <button on:click={toggleTheme} class="theme-toggle">
@@ -33,12 +33,12 @@
         </div>
 
         <!-- Auth container now only has authentication elements -->
-        <div class="auth-container">
+        <div class="auth-container" style="display: flex; gap: 0.5rem;">
           {#if $auth}
             <span class="user-email">{$auth.email}</span>
             <button on:click={logout} class="auth-button">Logout</button>
           {:else}
-            <a href="/login" class="auth-button">Login</a>
+            <a href="/login" class="auth-button login">Login</a>
             <a href="/register" class="auth-button register">Register</a>
           {/if}
         </div>
@@ -127,6 +127,11 @@ nav a:hover, nav a[aria-current] {
   transform: scale(1.05);
 }
 
+.nav-right {
+  min-width: 180px;
+  justify-content: flex-end;
+}
+
 .user-email {
   margin-right: 1rem;
   font-size: 0.875rem;
@@ -134,6 +139,7 @@ nav a:hover, nav a[aria-current] {
 }
 
 .auth-button {
+  transition: all 0.2s ease;
   padding: 0.5rem 1rem;
   background: var(--color-secondary);
   border-radius: var(--border-radius-sm);
@@ -143,8 +149,27 @@ nav a:hover, nav a[aria-current] {
   background: var(--border-color);
 }
 
+.login {
+  background: var(--color-secondary);
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+}
+
+.login:hover {
+  background: var(--color-primary-hover);
+  color: white;
+  border-color: transparent;
+}
+
 .register {
   background: var(--color-primary);
   color: white;
+  box-shadow: 0 2px 4px rgba(99, 102, 241, 0.2);
+}
+
+.register:hover {
+  background: var(--color-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(99, 102, 241, 0.3);
 }
 </style>
