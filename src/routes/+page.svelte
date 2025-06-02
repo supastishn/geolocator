@@ -206,6 +206,16 @@
           <span><strong>Longitude:</strong> {longitude}</span>
         {/if}
       </div>
+      {#if city || country}
+        <div class="city-country-row">
+          {#if city}
+            <span><strong>City:</strong> {city}</span>
+          {/if}
+          {#if country}
+            <span><strong>Country:</strong> {country}</span>
+          {/if}
+        </div>
+      {/if}
     </div>
   {/if}
 
@@ -410,6 +420,20 @@
     font-size: 1.1em;
     margin-top: 0.5em;
     color: var(--color-theme-3);
+  }
+
+  .city-country-row {
+    display: flex;
+    gap: 2em;
+    font-size: 1.1em;
+    margin-top: 0.5em;
+    color: var(--color-theme-3);
+  }
+
+  .ai-info .city-country-row span {
+    padding: 0.2em 0.5em;
+    background-color: #f6fafd;
+    border-radius: 4px;
   }
   .iterate-row {
     display: flex;
