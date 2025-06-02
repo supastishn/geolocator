@@ -7,24 +7,36 @@
   let result = null;
   let isLoading = false;
   let error = null;
+  let streamingXml = '';
+  let streaming = false;
 
   const handleSubmit = async () => {
     if (!imageFile) return;
     
     isLoading = true;
     error = null;
+    streamingXml = '';
+    streaming = true;
     
     try {
       const reader = new FileReader();
       reader.readAsDataURL(imageFile[0]);
       reader.onload = async () => {
         const imageData = reader.result;
-        result = await getLocation(imageData);
+        result = await getLocation(
+          imageData,
+          5,
+          (xml) => {
+            streamingXml = xml;
+          }
+        );
         isLoading = false;
+        streaming = false;
       };
     } catch (err) {
       error = err.message;
       isLoading = false;
+      streaming = false;
     }
   };
 </script>
@@ -52,6 +64,13 @@
       {isLoading ? 'Analyzing Location...' : 'Find Location'}
     </button>
   </div>
+
+  {#if streaming && streamingXml}
+    <div class="streaming-xml">
+      <div class="streaming-title">Streaming XML output:</div>
+      <pre>{streamingXml.split('\n').slice(-8).join('\n')}</pre>
+    </div>
+  {/if}
   
   {#if error}
     <div class="error">{error}</div>
@@ -143,6 +162,35 @@
     font-size: 1.1rem;
     border-radius: 6px;
     box-shadow: 0 1px 4px rgba(64,117,166,0.07);
+  }
+
+  .streaming-xml {
+    background: #23272e;
+    color: #e0e0e0;
+    border-radius: 8px;
+    margin: 1.5rem 0 0.5rem 0;
+    padding: 1rem 1.2rem;
+    font-size: 1rem;
+    box-shadow: 0 1px 4px rgba(64,117,166,0.10);
+    text-align: left;
+    max-width: 100%;
+    overflow-x: auto;
+    word-break: break-all;
+  }
+  .streaming-title {
+    color: #ffb86c;
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.5em;
+  }
+  .streaming-xml pre {
+    background: none;
+    color: #e0e0e0;
+    margin: 0;
+    padding: 0;
+    font-size: 1em;
+    font-family: var(--font-mono);
+    white-space: pre-wrap;
   }
 
   .error {

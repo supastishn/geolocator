@@ -21,7 +21,14 @@ Rules:
 3. Final answer MUST include both <satellite> and <answer>
 `.trim();
 
-export async function getLocation(imageData, iterations = 5) {
+/**
+ * getLocation with streaming support.
+ * @param {string} imageData
+ * @param {number} iterations
+ * @param {(xmlChunk: string) => void} onStreamChunk - callback for streaming XML output
+ * @returns {Promise<object|null>}
+ */
+export async function getLocation(imageData, iterations = 5, onStreamChunk = null) {
   const settingsValue = get(settings);
   const messages = [{
     role: "system",
@@ -37,6 +44,7 @@ export async function getLocation(imageData, iterations = 5) {
   let locationData = null;
   
   for (let i = 0; i < iterations; i++) {
+    // Use OpenAI streaming API
     const response = await fetch(`${settingsValue.baseUrl}/chat/completions`, {
       method: 'POST',
       headers: {
@@ -46,16 +54,49 @@ export async function getLocation(imageData, iterations = 5) {
       body: JSON.stringify({
         model: settingsValue.model,
         messages,
-        max_tokens: 1000
+        max_tokens: 1000,
+        stream: true
       })
     });
-    
-    const data = await response.json();
+
     if (!response.ok) {
-      throw new Error(data.error?.message || 'Failed to get location');
+      let err = 'Failed to get location';
+      try {
+        const data = await response.json();
+        err = data.error?.message || err;
+      } catch {}
+      throw new Error(err);
     }
-    
-    const content = data.choices[0].message.content;
+
+    // Stream the response
+    let content = '';
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder('utf-8');
+    let done = false;
+    while (!done) {
+      const { value, done: doneReading } = await reader.read();
+      done = doneReading;
+      if (value) {
+        const chunk = decoder.decode(value, { stream: true });
+        // OpenAI streams as "data: ..." lines
+        for (const line of chunk.split('\n')) {
+          if (line.startsWith('data: ')) {
+            const dataStr = line.replace('data: ', '').trim();
+            if (dataStr === '[DONE]') continue;
+            try {
+              const data = JSON.parse(dataStr);
+              const delta = data.choices?.[0]?.delta?.content;
+              if (delta) {
+                content += delta;
+                if (onStreamChunk) onStreamChunk(content);
+              }
+            } catch {}
+          }
+        }
+      }
+    }
+
+    // Parse the streamed content as XML
     const parser = new DOMParser();
     const xmlDoc = parser.parseFromString(content, "text/xml");
     
