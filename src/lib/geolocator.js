@@ -22,23 +22,39 @@ Rules:
 `.trim();
 
 /**
+ * Helper to build the user message for OpenAI API.
+ * If isIterate is true, sends both the original and satellite images.
+ */
+function buildMessage(imageData, mapUrl, isIterate = false) {
+  if (!isIterate || !mapUrl) {
+    return [
+      { type: "text", text: "Identify this location:" },
+      { type: "image_url", image_url: { url: imageData } }
+    ];
+  }
+  return [
+    { type: "text", text: "Original photo and satellite view:" },
+    { type: "image_url", image_url: { url: imageData } },
+    { type: "image_url", image_url: { url: mapUrl } }
+  ];
+}
+
+/**
  * getLocation with streaming support.
  * @param {string} imageData
  * @param {number} iterations
  * @param {(xmlChunk: string) => void} onStreamChunk - callback for streaming XML output
+ * @param {string|null} mapUrl - optional satellite image url for iteration
  * @returns {Promise<object|null>}
  */
-export async function getLocation(imageData, iterations = 5, onStreamChunk = null) {
+export async function getLocation(imageData, iterations = 5, onStreamChunk = null, mapUrl = null) {
   const settingsValue = get(settings);
   const messages = [{
     role: "system",
     content: SYSTEM_PROMPT
   }, {
     role: "user",
-    content: [
-      { type: "text", text: "Identify this location:" },
-      { type: "image_url", image_url: { url: imageData } }
-    ]
+    content: buildMessage(imageData, mapUrl, !!mapUrl)
   }];
   
   let locationData = null;
@@ -115,18 +131,16 @@ export async function getLocation(imageData, iterations = 5, onStreamChunk = nul
       const lat = xmlDoc.querySelector('latitude')?.textContent;
       const lng = xmlDoc.querySelector('longitude')?.textContent;
       
-      const mapUrl = await getSatelliteImage(lat, lng, settingsValue.mapsKey);
+      const nextMapUrl = await getSatelliteImage(lat, lng, settingsValue.mapsKey);
       
       messages.push({
         role: "assistant",
         content: content
       }, {
         role: "user",
-        content: [
-          { type: "text", text: "Satellite view:" },
-          { type: "image_url", image_url: { url: mapUrl } }
-        ]
+        content: buildMessage(imageData, nextMapUrl, true)
       });
+      mapUrl = nextMapUrl;
     }
   }
   

@@ -6,9 +6,10 @@
   let model = $settings.model;
   let saved = false;
   let saveTimeout;
+  let mapsKey = $settings.mapsKey;
 
   const saveSettings = () => {
-    $settings = { apiKey, baseUrl, model };
+    $settings = { apiKey, baseUrl, model, mapsKey };
     saved = true;
     clearTimeout(saveTimeout);
     saveTimeout = setTimeout(() => {
@@ -37,6 +38,11 @@
     <input type="text" bind:value={model} 
            placeholder="gpt-4-vision-preview"
            class="centered-input" />
+  </label>
+
+  <label>
+    Mapbox Access Token:
+    <input type="password" bind:value={mapsKey} class="centered-input" />
   </label>
   
   <div class="button-row">
