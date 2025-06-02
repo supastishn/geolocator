@@ -98,7 +98,8 @@ export async function getLocation(imageData, iterations = 5, onStreamChunk = nul
 
     // Parse the streamed content as XML
     const parser = new DOMParser();
-    const xmlDoc = parser.parseFromString(content, "text/xml");
+    const wrappedContent = `<root>${content}</root>`;
+    const xmlDoc = parser.parseFromString(wrappedContent, "text/xml");
     
     if (xmlDoc.querySelector('answer')) {
       locationData = {

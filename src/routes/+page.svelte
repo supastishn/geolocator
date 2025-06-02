@@ -23,8 +23,10 @@
   // Helper to parse XML for <thinking>, <latitude>, <longitude>, <city>, <country>
   function parseXmlFields(xml) {
     try {
+      // Wrap XML content in a root element
+      const wrappedXml = `<root>${xml}</root>`;
       const parser = new DOMParser();
-      const doc = parser.parseFromString(xml, "text/xml");
+      const doc = parser.parseFromString(wrappedXml, "text/xml");
       return {
         thinking: doc.querySelector('thinking')?.textContent || '',
         latitude: doc.querySelector('latitude')?.textContent || '',
