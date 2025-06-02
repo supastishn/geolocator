@@ -19,8 +19,8 @@
 			<li aria-current={$page.url.pathname === '/' ? 'page' : undefined}>
 				<a href="/">Home</a>
 			</li>
-			<li aria-current={$page.url.pathname === '/about' ? 'page' : undefined}>
-				<a href="/about">About</a>
+			<li aria-current={$page.url.pathname === '/settings' ? 'page' : undefined}>
+				<a href="/settings">Settings</a>
 			</li>
 		</ul>
 		<svg viewBox="0 0 2 3" aria-hidden="true">
@@ -39,6 +39,10 @@
 	header {
 		display: flex;
 		justify-content: space-between;
+		align-items: center;
+		background: linear-gradient(90deg, var(--color-theme-2) 0%, var(--color-theme-1) 100%);
+		box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+		padding: 0 1.5em;
 	}
 
 	.corner {
@@ -63,7 +67,9 @@
 	nav {
 		display: flex;
 		justify-content: center;
-		--background: rgba(255, 255, 255, 0.7);
+		--background: rgba(255, 255, 255, 0.85);
+		border-radius: 2em;
+		box-shadow: 0 1px 4px rgba(0,0,0,0.04);
 	}
 
 	svg {
@@ -87,6 +93,8 @@
 		list-style: none;
 		background: var(--background);
 		background-size: contain;
+		border-radius: 2em;
+		box-shadow: 0 1px 4px rgba(0,0,0,0.04);
 	}
 
 	li {
@@ -110,17 +118,33 @@
 		display: flex;
 		height: 100%;
 		align-items: center;
-		padding: 0 0.5rem;
-		color: var(--color-text);
+		padding: 0 1.2rem;
+		color: var(--color-theme-2);
 		font-weight: 700;
-		font-size: 0.8rem;
+		font-size: 1rem;
 		text-transform: uppercase;
 		letter-spacing: 0.1em;
 		text-decoration: none;
-		transition: color 0.2s linear;
+		transition: color 0.2s linear, background 0.2s;
+		border-radius: 2em;
 	}
 
-	a:hover {
+	nav a:hover, nav a:focus {
 		color: var(--color-theme-1);
+		background: rgba(255,255,255,0.5);
+	}
+
+	@media (max-width: 600px) {
+		header {
+			flex-direction: column;
+			padding: 0.5em;
+		}
+		nav ul {
+			height: 2.5em;
+		}
+		nav a {
+			font-size: 0.9rem;
+			padding: 0 0.7rem;
+		}
 	}
 </style>
