@@ -125,8 +125,6 @@ export async function getLocation(imageData, onStreamChunk = null, mapUrl = null
   return null;
 }
 
-function getSatelliteImage(lat, lng, apiKey) {
-  // No longer using Google Maps API, return a placeholder or OSM static map
-  // OpenStreetMap does not provide free static satellite images, so we return a standard map
-  return `https://staticmap.openstreetmap.de/staticmap.php?center=${lat},${lng}&zoom=15&size=600x400&markers=${lat},${lng},red-pushpin`;
+function getSatelliteImage(lat, lon) {
+  return `https://fra.cloud.appwrite.io/v1/functions/get-mapbox/executions?lat=${lat}&lon=${lon}&zoom=15&width=800&height=600`;
 }

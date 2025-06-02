@@ -6,10 +6,9 @@
   let model = $settings.model;
   let saved = false;
   let saveTimeout;
-  let mapsKey = $settings.mapsKey;
 
   const saveSettings = () => {
-    $settings = { apiKey, baseUrl, model, mapsKey };
+    $settings = { apiKey, baseUrl, model };
     saved = true;
     clearTimeout(saveTimeout);
     saveTimeout = setTimeout(() => {
@@ -40,10 +39,6 @@
            class="centered-input" />
   </label>
 
-  <label>
-    Mapbox Access Token:
-    <input type="password" bind:value={mapsKey} class="centered-input" />
-  </label>
   
   <div class="button-row">
     <button on:click={saveSettings}>Save Settings</button>

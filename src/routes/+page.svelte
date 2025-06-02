@@ -47,10 +47,8 @@
   }
 
   // Helper to get satellite image URL (should match geolocator.js)
-  async function getSatelliteImage(lat, lng, apiKey) {
-    // No longer using Google Maps API, return a placeholder or OSM static map
-    // OpenStreetMap does not provide free static satellite images, so we return a standard map
-    return `https://staticmap.openstreetmap.de/staticmap.php?center=${lat},${lng}&zoom=15&size=600x400&markers=${lat},${lng},red-pushpin`;
+  async function getSatelliteImage(lat, lon) {
+    return `https://fra.cloud.appwrite.io/v1/functions/get-mapbox/executions?lat=${lat}&lon=${lon}&zoom=15&width=800&height=600`;
   }
 
   // Helper to read file as base64
@@ -100,7 +98,7 @@
 
           // If satellite is requested, store coordinates and move to next phase
           if (fields.hasSatellite && latitude && longitude) {
-            mapImage = await getSatelliteImage(latitude, longitude, $settings.mapsKey);
+            mapImage = await getSatelliteImage(latitude, longitude);
             iterationPhase = 'after-first';
           } else if (fields.hasAnswer) {
             iterationPhase = 'done';
@@ -150,7 +148,7 @@
           xmlDoc = fields.xmlDoc;
 
           if (fields.hasSatellite && latitude && longitude) {
-            mapImage = await getSatelliteImage(latitude, longitude, $settings.mapsKey);
+            mapImage = await getSatelliteImage(latitude, longitude);
           } else if (fields.hasAnswer) {
             iterationPhase = 'done';
           }

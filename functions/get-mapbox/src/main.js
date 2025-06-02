@@ -1,35 +1,37 @@
-import { Client, Users } from 'node-appwrite';
+import fetch from 'node-fetch';
 
-// This Appwrite function will be executed every time your function is triggered
 export default async ({ req, res, log, error }) => {
-  // You can use the Appwrite SDK to interact with other services
-  // For this example, we're using the Users service
-  const client = new Client()
-    .setEndpoint(process.env.APPWRITE_FUNCTION_API_ENDPOINT)
-    .setProject(process.env.APPWRITE_FUNCTION_PROJECT_ID)
-    .setKey(req.headers['x-appwrite-key'] ?? '');
-  const users = new Users(client);
+  const apiKey = process.env.MAPBOX_TOKEN;
+  const baseUrl = 'https://api.mapbox.com/styles/v1/mapbox/satellite-v9/static';
+
+  if (!apiKey) {
+    error("MAPBOX_TOKEN is not set");
+    return res.json({ error: "MAPBOX_TOKEN environment variable not configured" }, 500);
+  }
 
   try {
-    const response = await users.list();
-    // Log messages and errors to the Appwrite Console
-    // These logs won't be seen by your end users
-    log(`Total users: ${response.total}`);
-  } catch(err) {
-    error("Could not list users: " + err.message);
-  }
+    const { lat, lon, zoom = 14, width = 800, height = 600 } = req.query;
+    if (!lat || !lon) {
+      return res.json({ error: "Missing required parameters: lat and lon" }, 400);
+    }
 
-  // The req object contains the request data
-  if (req.path === "/ping") {
-    // Use res object to respond with text(), json(), or binary()
-    // Don't forget to return a response!
-    return res.text("Pong");
-  }
+    const marker = `pin-s+ff0000(${lon},${lat})`;
+    const mapboxUrl = `${baseUrl}/${marker}/${lon},${lat},${zoom}/${width}x${height}?access_token=${apiKey}`;
 
-  return res.json({
-    motto: "Build like a team of hundreds_",
-    learn: "https://appwrite.io/docs",
-    connect: "https://appwrite.io/discord",
-    getInspired: "https://builtwith.appwrite.io",
-  });
+    const imageResponse = await fetch(mapboxUrl);
+    if (!imageResponse.ok) {
+      return res.json({
+        error: `Mapbox API error: ${imageResponse.statusText}`,
+        status: imageResponse.status
+      }, imageResponse.status);
+    }
+
+    const buffer = await imageResponse.buffer();
+    return res.binary(buffer, imageResponse.status, {
+      'Content-Type': 'image/png'
+    });
+  } catch (e) {
+    error(e.message);
+    return res.json({ error: 'Internal server error' }, 500);
+  }
 };
