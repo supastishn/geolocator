@@ -37,7 +37,7 @@ export async function getLocation(imageData, iterations = 5, onStreamChunk = nul
     role: "user",
     content: [
       { type: "text", text: "Identify this location:" },
-      { type: "image_url", url: imageData }
+      { type: "image_url", image_url: { url: imageData } }
     ]
   }];
   
@@ -123,7 +123,7 @@ export async function getLocation(imageData, iterations = 5, onStreamChunk = nul
         role: "user",
         content: [
           { type: "text", text: "Satellite view:" },
-          { type: "image_url", url: mapUrl }
+          { type: "image_url", image_url: { url: mapUrl } }
         ]
       });
     }
