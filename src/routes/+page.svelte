@@ -74,14 +74,21 @@
   </div>
 
   {#if streaming && streamingXml}
-    <div class="streaming-xml">
-      <div class="streaming-title">Streaming XML output:</div>
+    <div class="xml-output">
+      <div class="title">Streaming XML output:</div>
       <pre>{streamingXml.split('\n').slice(-8).join('\n')}</pre>
     </div>
   {/if}
   
   {#if error}
     <div class="error">{error}</div>
+  {/if}
+  
+  {#if !isLoading && finalXml}
+    <div class="xml-output debug-xml">
+      <div class="title">Final XML Output:</div>
+      <pre>{finalXml}</pre>
+    </div>
   {/if}
   
   {#if result}
