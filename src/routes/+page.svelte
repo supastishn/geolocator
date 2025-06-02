@@ -77,9 +77,8 @@
     city = '';
     country = '';
     xmlDoc = null;
-    mapImage = null;
-    imageBase64 = null;
-    // Removed: iterationPhase
+    mapImage = null; // stores the satellite image URL for iteration
+    imageBase64 = null; // stores the original image base64 for iteration
 
     try {
       imageBase64 = await readFileAsBase64(imageFile[0]);
@@ -99,23 +98,13 @@
           // If satellite is requested, store coordinates
           if (fields.hasSatellite && latitude && longitude) {
             mapImage = await getSatelliteImage(latitude, longitude);
-            // Removed: iterationPhase
-          } // Removed: else if (fields.hasAnswer) { iterationPhase = 'done'; }
+          }
         }
       );
       finalXml = streamingXml;
       result = location;
       isLoading = false;
       streaming = false;
-
-      // Automated iteration if satellite is needed and result not found
-      if (mapImage && !result) {
-        try {
-          await handleIterate();
-        } catch (err) {
-          error = err?.message || 'Iteration failed automatically';
-        }
-      }
 
       if (!location && !mapImage) {
         error = "Failed to identify location. Please try another image.";
@@ -132,7 +121,6 @@
     isLoading = true;
     error = null;
     streaming = true;
-    // Removed: iterationPhase
 
     try {
       // Use stored imageBase64 and mapImage for dual-image iteration
@@ -156,7 +144,7 @@
 
           if (fields.hasSatellite && latitude && longitude) {
             mapImage = await getSatelliteImage(latitude, longitude);
-          } // Removed: else if (fields.hasAnswer) { iterationPhase = 'done'; }
+          }
         },
         mapImage // pass satellite image url for dual-image
       );
