@@ -49,69 +49,78 @@
 </div>
 
 <style>
-  .settings-container {
-    max-width: 500px;
-    margin: 2rem auto;
-    padding: 1.5rem;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    background: white;
-    text-align: center;
-  }
-  
-  label {
-    display: block;
-    margin-bottom: 1.2rem;
-    text-align: center;
-  }
-  
-  .centered-input {
-    width: 70%;
-    margin: 0.5rem auto 0 auto;
-    display: block;
-    text-align: center;
-  }
+.settings-container {
+	max-width: 600px;
+	margin: 2rem auto;
+	padding: 2rem;
+	background: var(--color-surface);
+	border-radius: var(--border-radius);
+	box-shadow: var(--shadow-lg);
+	border: 1px solid var(--border-color);
+}
 
-  .button-row {
-    display: flex;
-    justify-content: center;
-    margin-top: 1.2rem;
-    margin-bottom: 0.5rem;
-  }
+h2 {
+	color: var(--color-text);
+	margin-bottom: 2rem;
+	font-size: 1.75rem;
+	font-weight: 700;
+	text-align: center;
+}
 
-  button {
-    background: #4075a6;
-    color: white;
-    border: none;
-    padding: 0.5rem 1.5rem;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 1.1rem;
-    font-weight: 600;
-    margin: 0 auto;
-    display: block;
-  }
+label {
+	display: block;
+	margin-bottom: 1.5rem;
+	font-weight: 500;
+	color: var(--color-text);
+}
 
-  button:hover {
-    background: #2c5282;
-  }
+.centered-input {
+	width: 100%;
+	margin-top: 0.5rem;
+	padding: 0.75rem;
+	border: 1px solid var(--border-color);
+	border-radius: var(--border-radius-sm);
+	background: var(--color-surface);
+	color: var(--color-text);
+	font-size: 0.875rem;
+	transition: all 0.2s ease;
+	box-shadow: var(--shadow-sm);
+}
 
-  .save-feedback {
-    margin-top: 0.7rem;
-    color: #fff;
-    background: #4caf50;
-    border-radius: 4px;
-    padding: 0.4rem 1rem;
-    display: inline-block;
-    font-weight: 600;
-    font-size: 1rem;
-    animation: fadeInOut 1.8s;
-  }
+.centered-input:focus {
+	border-color: var(--color-primary);
+	outline: none;
+	box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
 
-  @keyframes fadeInOut {
-    0% { opacity: 0; }
-    10% { opacity: 1; }
-    90% { opacity: 1; }
-    100% { opacity: 0; }
-  }
+.button-row {
+	display: flex;
+	justify-content: center;
+	margin-top: 2rem;
+	margin-bottom: 1rem;
+}
+
+.save-feedback {
+	background: var(--color-accent);
+	color: white;
+	border-radius: var(--border-radius-sm);
+	padding: 0.75rem 1.5rem;
+	display: inline-block;
+	font-weight: 500;
+	font-size: 0.875rem;
+	margin-top: 1rem;
+	box-shadow: var(--shadow-md);
+	animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+	from {
+		opacity: 0;
+		transform: translateY(-10px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
 </style>
