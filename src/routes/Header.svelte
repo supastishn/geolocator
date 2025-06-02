@@ -62,6 +62,10 @@
 
 	/* Removed flex: 1 from .nav-left, .nav-right */
 
+	.nav-left {
+	  width: 60px; /* Fixed width for logo */
+	}
+
 	.nav-links {
 	  display: flex;
 	  list-style: none;
@@ -69,10 +73,22 @@
 	  margin: 0;
 	}
 
+	.nav-links-center {
+	  flex-grow: 1;
+	  display: flex;
+	  justify-content: center;
+	}
+
 	.logo {
 	  font-weight: 700;
 	  font-size: 1.2rem;
 	  color: white;
+	}
+
+	/* Add logo image styles */
+	.logo-img {
+	  height: 40px;
+	  width: auto;
 	}
 
 	li::before {
