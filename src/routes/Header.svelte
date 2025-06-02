@@ -1,16 +1,13 @@
 <script>
 	import { page } from '$app/stores';
-	import logo from '$lib/images/svelte-logo.svg';
-	import github from '$lib/images/github.svg';
+	import { theme } from '$lib/stores';
+
+	const toggleTheme = () => {
+		$theme = $theme === 'light' ? 'dark' : 'light';
+	};
 </script>
 
 <header>
-	<div class="corner">
-		<a href="https://kit.svelte.dev">
-			<img src={logo} alt="SvelteKit" />
-		</a>
-	</div>
-
 	<nav>
 		<ul>
 			<li aria-current={$page.url.pathname === '/' ? 'page' : undefined}>
@@ -19,61 +16,44 @@
 			<li aria-current={$page.url.pathname === '/settings' ? 'page' : undefined}>
 				<a href="/settings">Settings</a>
 			</li>
+			<li>
+				<button on:click={toggleTheme} class="theme-toggle">
+					{$theme === 'light' ? '🌙' : '☀️'}
+				</button>
+			</li>
 		</ul>
 	</nav>
-
-	<div class="corner">
-		<a href="https://github.com/sveltejs/kit">
-			<img src={github} alt="GitHub" />
-		</a>
-	</div>
 </header>
 
 <style>
+	.theme-toggle {
+		background: transparent;
+		border: none;
+		font-size: 1.5rem;
+		cursor: pointer;
+		padding: 0 10px;
+	}
+
+	.corner {
+		display: none;
+	}
+
 	header {
 		display: flex;
-		justify-content: space-between;
+		justify-content: center;
 		align-items: center;
 		background: linear-gradient(90deg, var(--color-theme-2) 0%, var(--color-theme-1) 100%);
 		box-shadow: 0 2px 8px rgba(0,0,0,0.07);
 		padding: 0 1.5em;
 	}
 
-	.corner {
-		width: 3em;
-		height: 3em;
-	}
-
-	.corner a {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 100%;
-		height: 100%;
-	}
-
-	.corner img {
-		width: 2em;
-		height: 2em;
-		object-fit: contain;
-	}
-
 	nav {
 		display: flex;
 		justify-content: center;
+		margin: 0 auto;
 		--background: rgba(255, 255, 255, 0.85);
 		border-radius: 2em;
 		box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-	}
-
-	svg {
-		width: 2em;
-		height: 3em;
-		display: block;
-	}
-
-	path {
-		fill: var(--background);
 	}
 
 	ul {

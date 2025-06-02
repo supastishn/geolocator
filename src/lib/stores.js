@@ -15,3 +15,16 @@ if (typeof localStorage !== 'undefined') {
     localStorage.setItem('ai-geolocator-settings', JSON.stringify(value));
   });
 }
+
+// Theme store with localStorage persistence
+export const theme = writable(
+  typeof localStorage !== 'undefined'
+    ? localStorage.getItem('theme') || 'light'
+    : 'light'
+);
+
+theme.subscribe(value => {
+  if (typeof localStorage !== 'undefined') {
+    localStorage.setItem('theme', value);
+  }
+});

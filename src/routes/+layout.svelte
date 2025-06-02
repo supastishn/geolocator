@@ -1,6 +1,14 @@
 <script>
 	import Header from './Header.svelte';
 	import '../app.css';
+	import { theme } from '$lib/stores';
+	import { browser } from '$app/environment';
+
+	if (browser) {
+		theme.subscribe(theme => {
+			document.body.setAttribute('data-theme', theme);
+		});
+	}
 </script>
 
 <div class="app">
