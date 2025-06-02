@@ -1,6 +1,7 @@
 <script>
 	import { page } from '$app/stores';
 	import { theme } from '$lib/stores';
+	import { auth, logout } from '$lib/authStore';
 
 	const toggleTheme = () => {
 		$theme = $theme === 'light' ? 'dark' : 'light';
@@ -24,6 +25,13 @@
         </li>
       </ul>
       <div class="nav-right">
+        {#if $auth}
+          <span class="user-email">{$auth.email}</span>
+          <button on:click={logout} class="auth-button">Logout</button>
+        {:else}
+          <a href="/login" class="auth-button">Login</a>
+          <a href="/register" class="auth-button register">Register</a>
+        {/if}
         <button on:click={toggleTheme} class="theme-toggle">
           {$theme === 'light' ? '🌙' : '☀️'}
         </button>
@@ -113,5 +121,27 @@ nav a:hover, nav a[aria-current] {
 .theme-toggle:hover {
 	background: var(--border-color);
 	transform: scale(1.05);
+}
+
+.user-email {
+	margin-right: 1rem;
+	font-size: 0.875rem;
+	color: var(--color-text);
+}
+
+.auth-button {
+	padding: 0.5rem 1rem;
+	margin-left: 0.5rem;
+	background: var(--color-secondary);
+	border-radius: var(--border-radius-sm);
+}
+
+.auth-button:hover {
+	background: var(--border-color);
+}
+
+.register {
+	background: var(--color-primary);
+	color: white;
 }
 </style>
