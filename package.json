@@ -14,7 +14,7 @@
 		"@fontsource/fira-mono": "^5.0.0",
 		"@googlemaps/js-api-loader": "^1.16.2",
 		"@neoconfetti/svelte": "^2.0.0",
-		"@sveltejs/adapter-auto": "^3.0.0",
+		"@sveltejs/adapter-static": "^3.0.0",
 		"@sveltejs/kit": "^2.0.0",
 		"@sveltejs/vite-plugin-svelte": "^3.0.0",
 		"dotenv": "^16.3.1",
