@@ -62,34 +62,40 @@
       const reader = new FileReader();
       reader.readAsDataURL(imageFile[0]);
       reader.onload = async () => {
-        const imageData = reader.result;
-        // Only do 1 iteration for initial run
-        const location = await getLocation(
-          imageData,
-          1,
-          (xml) => {
-            streamingXml = xml;
-            const fields = parseXmlFields(xml);
-            thinking = fields.thinking;
-            latitude = fields.latitude;
-            longitude = fields.longitude;
-            city = fields.city;
-            country = fields.country;
-            canIterate = fields.hasSatellite && !fields.hasAnswer;
-            xmlDoc = fields.xmlDoc;
-          }
-        );
-        finalXml = streamingXml;
-        result = location;
-        isLoading = false;
-        streaming = false;
+        try {
+          const imageData = reader.result;
+          // Only do 1 iteration for initial run
+          const location = await getLocation(
+            imageData,
+            1,
+            (xml) => {
+              streamingXml = xml;
+              const fields = parseXmlFields(xml);
+              thinking = fields.thinking;
+              latitude = fields.latitude;
+              longitude = fields.longitude;
+              city = fields.city;
+              country = fields.country;
+              canIterate = fields.hasSatellite && !fields.hasAnswer;
+              xmlDoc = fields.xmlDoc;
+            }
+          );
+          finalXml = streamingXml;
+          result = location;
+          isLoading = false;
+          streaming = false;
 
-        if (!location && !canIterate) {
-          error = "Failed to identify location. Please try another image.";
+          if (!location && !canIterate) {
+            error = "Failed to identify location. Please try another image.";
+          }
+        } catch (err) {
+          error = err?.message || 'An error occurred during location analysis.';
+          isLoading = false;
+          streaming = false;
         }
       };
     } catch (err) {
-      error = err.message;
+      error = err?.message || 'An error occurred while reading the file.';
       isLoading = false;
       streaming = false;
     }
@@ -103,40 +109,43 @@
     canIterate = false;
 
     try {
-      // Use the last XML as context, and run getLocation for 1 more iteration
-      // We need to pass the previous XML and image again
-      // We'll use the same image, and let getLocation handle the next step
       const reader = new FileReader();
       reader.readAsDataURL(imageFile[0]);
       reader.onload = async () => {
-        const imageData = reader.result;
-        // Now run getLocation for 1 more iteration, using the previous XML as context
-        const location = await getLocation(
-          imageData,
-          1,
-          (xml) => {
-            streamingXml = xml;
-            const fields = parseXmlFields(xml);
-            thinking = fields.thinking;
-            latitude = fields.latitude;
-            longitude = fields.longitude;
-            city = fields.city;
-            country = fields.country;
-            canIterate = fields.hasSatellite && !fields.hasAnswer;
-            xmlDoc = fields.xmlDoc;
-          }
-        );
-        finalXml = streamingXml;
-        result = location;
-        isLoading = false;
-        streaming = false;
+        try {
+          const imageData = reader.result;
+          // Now run getLocation for 1 more iteration, using the previous XML as context
+          const location = await getLocation(
+            imageData,
+            1,
+            (xml) => {
+              streamingXml = xml;
+              const fields = parseXmlFields(xml);
+              thinking = fields.thinking;
+              latitude = fields.latitude;
+              longitude = fields.longitude;
+              city = fields.city;
+              country = fields.country;
+              canIterate = fields.hasSatellite && !fields.hasAnswer;
+              xmlDoc = fields.xmlDoc;
+            }
+          );
+          finalXml = streamingXml;
+          result = location;
+          isLoading = false;
+          streaming = false;
 
-        if (!location && !canIterate) {
-          error = "Failed to identify location. Please try another image.";
+          if (!location && !canIterate) {
+            error = "Failed to identify location. Please try another image.";
+          }
+        } catch (err) {
+          error = err?.message || 'An error occurred during satellite iteration.';
+          isLoading = false;
+          streaming = false;
         }
       };
     } catch (err) {
-      error = err.message;
+      error = err?.message || 'An error occurred while reading the file.';
       isLoading = false;
       streaming = false;
     }
