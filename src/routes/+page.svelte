@@ -34,15 +34,20 @@
 </svelte:head>
 
 <main class="container">
-  <h1>AI Geolocator</h1>
+  <h1>
+    <span class="emoji">🛰️</span> AI Geolocator
+  </h1>
   
   <div class="upload-area">
-    <input 
-      type="file" 
-      accept="image/*" 
-      bind:files={imageFile}
-      disabled={isLoading}
-    />
+    <label class="file-label">
+      <input 
+        type="file" 
+        accept="image/*" 
+        bind:files={imageFile}
+        disabled={isLoading}
+      />
+      <span>{imageFile && imageFile.length ? imageFile[0].name : 'Choose an image...'}</span>
+    </label>
     <button on:click={handleSubmit} disabled={isLoading || !imageFile}>
       {isLoading ? 'Analyzing Location...' : 'Find Location'}
     </button>
@@ -68,67 +73,108 @@
 
 <style>
   .container {
-    max-width: 800px;
+    max-width: 700px;
     margin: 0 auto;
-    padding: 2rem;
+    padding: 2.5rem 1.5rem;
+    background: rgba(255,255,255,0.85);
+    border-radius: 18px;
+    box-shadow: 0 4px 24px rgba(64,117,166,0.08);
+    margin-top: 2.5rem;
   }
 
   h1 {
-    color: var(--color-theme-1);
-    margin-bottom: 2rem;
+    color: var(--color-theme-2);
+    margin-bottom: 2.5rem;
+    font-size: 2.5rem;
+    font-weight: 800;
+    letter-spacing: -1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5em;
+  }
+  .emoji {
+    font-size: 2.2rem;
+    vertical-align: middle;
   }
 
   .upload-area {
-    background: white;
-    padding: 2rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    margin-bottom: 2rem;
+    background: #fafdff;
+    padding: 2rem 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(64,117,166,0.07);
+    margin-bottom: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.2rem;
   }
 
-  input[type="file"] {
+  .file-label {
+    display: flex;
+    align-items: center;
+    gap: 1em;
+    background: #fff;
+    border: 1.5px solid #c3d0e0;
+    border-radius: 6px;
+    padding: 0.7em 1.2em;
+    cursor: pointer;
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--color-theme-3);
+    transition: border 0.2s;
     width: 100%;
-    margin-bottom: 1rem;
+    max-width: 350px;
+    justify-content: center;
+  }
+  .file-label input[type="file"] {
+    display: none;
+  }
+  .file-label span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 220px;
+    display: inline-block;
   }
 
   button {
-    background: var(--color-theme-1);
-    color: white;
-    border: none;
-    padding: 0.75rem 1.5rem;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: 600;
-  }
-
-  button:disabled {
-    background: #ccc;
-    cursor: not-allowed;
+    min-width: 180px;
+    font-size: 1.1rem;
+    border-radius: 6px;
+    box-shadow: 0 1px 4px rgba(64,117,166,0.07);
   }
 
   .error {
-    color: red;
-    background: #fff;
+    color: #fff;
+    background: #ff3e00;
     padding: 1rem;
-    border-radius: 4px;
-    margin: 1rem 0;
+    border-radius: 6px;
+    margin: 1.5rem 0;
+    font-weight: 600;
+    text-align: center;
+    box-shadow: 0 1px 4px rgba(255,62,0,0.08);
   }
 
   .result {
-    background: white;
-    padding: 2rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background: #fafdff;
+    padding: 2rem 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(64,117,166,0.07);
+    margin-top: 2rem;
+    text-align: center;
   }
 
   .location {
-    font-size: 1.25rem;
+    font-size: 1.4rem;
     color: var(--color-theme-2);
     margin-bottom: 0.5rem;
+    font-weight: 700;
   }
 
   .coordinates {
-    color: #666;
+    color: var(--color-theme-3);
     font-family: var(--font-mono);
+    margin-bottom: 1.5rem;
   }
 </style>
