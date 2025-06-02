@@ -18,6 +18,8 @@
 	--nav-bg-dark: linear-gradient(90deg, #2c3e50 0%, #1a2636 100%);
 	--text-light: #333;
 	--text-dark: #e0e0e0;
+	--nav-color: #4075a6;
+	--container-color: rgba(255,255,255,0.85);
 	font-family: var(--font-body);
 	color: var(--color-text);
 	background: var(--color-bg-1);
@@ -29,6 +31,8 @@
 	--color-bg-2: #24333f;
 	--color-text: #f3f4f6;
 	--color-text-light: #cbd5e0;
+	--nav-color: #1a2636;
+	--container-color: rgba(40, 50, 70, 0.85);
 }
 
 body[data-theme="dark"] header {

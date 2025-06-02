@@ -46,7 +46,7 @@
 	}
 
 	nav {
-	  background: linear-gradient(90deg, var(--color-theme-2) 0%, var(--color-theme-1) 100%);
+	  background: var(--nav-color);
 	  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
 	  padding: 0 1.5em;
 	}

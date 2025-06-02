@@ -257,18 +257,14 @@
 
 <style>
   .container {
+    background: var(--container-color);
     max-width: 700px;
     margin: 0 auto;
     padding: 2.5rem 1.5rem;
-    background: rgba(255,255,255,0.85);
     border-radius: 18px;
     box-shadow: 0 4px 24px rgba(64,117,166,0.08);
     margin-top: 2.5rem;
     transition: background 0.3s ease;
-  }
-
-  [data-theme="dark"] .container {
-    background: rgba(40, 50, 70, 0.85);
   }
 
   [data-theme="dark"] .thinking-box,
