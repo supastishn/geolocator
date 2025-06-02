@@ -8,6 +8,7 @@
   let isLoading = false;
   let error = null;
   let streamingXml = '';
+  let finalXml = '';
   let streaming = false;
 
   const handleSubmit = async () => {
@@ -15,6 +16,7 @@
     
     isLoading = true;
     error = null;
+    result = null;
     streamingXml = '';
     streaming = true;
     
@@ -23,15 +25,21 @@
       reader.readAsDataURL(imageFile[0]);
       reader.onload = async () => {
         const imageData = reader.result;
-        result = await getLocation(
+        const location = await getLocation(
           imageData,
           5,
           (xml) => {
             streamingXml = xml;
           }
         );
+        finalXml = streamingXml;
+        result = location;
         isLoading = false;
         streaming = false;
+
+        if (!location) {
+          error = "Failed to identify location. Please try another image.";
+        }
       };
     } catch (err) {
       error = err.message;
@@ -164,7 +172,7 @@
     box-shadow: 0 1px 4px rgba(64,117,166,0.07);
   }
 
-  .streaming-xml {
+  .xml-output {
     background: #23272e;
     color: #e0e0e0;
     border-radius: 8px;
@@ -177,13 +185,13 @@
     overflow-x: auto;
     word-break: break-all;
   }
-  .streaming-title {
+  .xml-output .title {
     color: #ffb86c;
     font-size: 1rem;
     font-weight: 700;
     margin-bottom: 0.5em;
   }
-  .streaming-xml pre {
+  .xml-output pre {
     background: none;
     color: #e0e0e0;
     margin: 0;
@@ -191,6 +199,13 @@
     font-size: 1em;
     font-family: var(--font-mono);
     white-space: pre-wrap;
+  }
+  .xml-output.debug-xml pre {
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 0.5rem;
+    background: rgba(0,0,0,0.2);
+    border-radius: 4px;
   }
 
   .error {
