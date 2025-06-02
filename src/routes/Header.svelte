@@ -44,8 +44,8 @@ header {
 }
 
 [data-theme="dark"] header {
-	background: rgba(15, 23, 42, 0.95);
-	border-bottom: 1px solid #1e293b;
+	background: rgba(2, 6, 23, 0.95);
+	border-bottom: 1px solid #0f172a;
 }
 
 .nav-content {
