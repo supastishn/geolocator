@@ -92,5 +92,7 @@ export async function getLocation(imageData, iterations = 5) {
 }
 
 function getSatelliteImage(lat, lng, apiKey) {
-  return `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lng}&zoom=15&size=600x400&maptype=satellite&key=${apiKey}`;
+  // No longer using Google Maps API, return a placeholder or OSM static map
+  // OpenStreetMap does not provide free static satellite images, so we return a standard map
+  return `https://staticmap.openstreetmap.de/staticmap.php?center=${lat},${lng}&zoom=15&size=600x400&markers=${lat},${lng},red-pushpin`;
 }

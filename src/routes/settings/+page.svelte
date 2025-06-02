@@ -4,10 +4,9 @@
   let apiKey = $settings.apiKey;
   let baseUrl = $settings.baseUrl;
   let model = $settings.model;
-  let mapsKey = $settings.mapsKey;
 
   const saveSettings = () => {
-    $settings = { apiKey, baseUrl, model, mapsKey };
+    $settings = { apiKey, baseUrl, model };
   };
 </script>
 
@@ -29,11 +28,6 @@
     Model:
     <input type="text" bind:value={model} 
            placeholder="gpt-4-vision-preview" />
-  </label>
-  
-  <label>
-    Google Maps API Key:
-    <input type="password" bind:value={mapsKey} />
   </label>
   
   <button on:click={saveSettings}>Save Settings</button>
