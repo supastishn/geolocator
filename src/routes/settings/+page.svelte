@@ -77,12 +77,12 @@ label {
 .centered-input {
 	width: 100%;
 	margin-top: 0.5rem;
-	padding: 0.75rem;
+	padding: 0.5rem 0.75rem;
 	border: 1px solid var(--border-color);
 	border-radius: var(--border-radius-sm);
 	background: var(--color-surface);
 	color: var(--color-text);
-	font-size: 0.875rem;
+	font-size: 0.8rem;
 	transition: all 0.2s ease;
 	box-shadow: var(--shadow-sm);
 }
