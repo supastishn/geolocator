@@ -10,6 +10,9 @@
   let saveTimeout;
   let saveError = '';
 
+  // Computed: should Save button be disabled?
+  $: saveDisabled = provider === 'gemini' && !$auth;
+
   const saveSettings = () => {
     if (provider === 'gemini' && !$auth) {
       saveError = "Gemini function is only available for logged in users";
@@ -73,7 +76,7 @@
   {/if}
 
   <div class="button-row">
-    <button on:click={saveSettings}>Save Settings</button>
+    <button on:click={saveSettings} disabled={saveDisabled}>Save Settings</button>
   </div>
   {#if saved}
     <div class="save-feedback">Settings saved!</div>
