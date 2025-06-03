@@ -211,6 +211,6 @@ async function callGeminiFunction(base64Image) {
 
   return {
     ok: execution.status === 'completed',
-    json: JSON.parse(execution.response) // Return parsed object directly
+    json: JSON.parse(execution.responseBody) // Return parsed object directly
   };
 }
