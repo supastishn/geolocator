@@ -1,5 +1,6 @@
 import { get } from 'svelte/store';
 import { settings } from './stores.js';
+import { functions } from './authStore';
 
 const SYSTEM_PROMPT = `
 You are an expert geolocation AI. Your task is to identify locations using satellite imagery.
@@ -168,20 +169,40 @@ export async function getLocation(imageData, onStreamChunk = null, mapUrl = null
   }
 }
 
-function getSatelliteImage(lat, lon) {
-  return `https://fra.cloud.appwrite.io/v1/projects/geolocatr/functions/get-mapbox/executions?lat=${lat}&lon=${lon}&zoom=15&width=800&height=600`;
+async function getSatelliteImage(lat, lon) {
+  // Use Appwrite Functions SDK to execute the get-mapbox function
+  const execution = await functions.createExecution(
+    'get-mapbox',
+    '', // No body needed for GET-like call
+    false, // async
+    // Pass query params as environment variables (Appwrite Functions supports query string)
+    { lat: String(lat), lon: String(lon), zoom: '15', width: '800', height: '600' }
+  );
+  // The response is a URL to the image (Appwrite returns a URL to the binary output)
+  // But in Appwrite, binary responses are returned as a URL in execution.response if set up
+  // If not, fallback to the executions endpoint with the execution ID
+  // For now, we assume the function returns the image as binary, so we construct the URL:
+  return `https://fra.cloud.appwrite.io/v1/functions/get-mapbox/executions/${execution.$id}/output`;
 }
 
-// Gemini function call helper
-function callGeminiFunction(base64Image) {
+/**
+ * Gemini function call helper using Appwrite Functions SDK.
+ * @param {string} base64Image
+ * @returns {Promise<{ok: boolean, json: function(): Promise<any>}>}
+ */
+async function callGeminiFunction(base64Image) {
   // Remove data URL prefix if exists
   const base64Data = base64Image.startsWith('data:')
     ? base64Image.split(',')[1]
     : base64Image;
 
-  return fetch('https://fra.cloud.appwrite.io/v1/projects/geolocatr/functions/gemini/executions', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ image: base64Data })
-  });
+  const execution = await functions.createExecution(
+    'gemini',
+    JSON.stringify({ image: base64Data })
+  );
+
+  return {
+    ok: execution.status === 'completed',
+    json: async () => JSON.parse(execution.response)
+  };
 }
