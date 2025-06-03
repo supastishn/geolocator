@@ -173,16 +173,15 @@ async function getSatelliteImage(lat, lon) {
   // Use Appwrite Functions SDK to execute the get-mapbox function
   const execution = await functions.createExecution(
     'get-mapbox',
-    '', // No body needed for GET-like call
-    false, // async
-    // Pass query params as environment variables (Appwrite Functions supports query string)
+    '', // No body needed for GET
+    false,
+    '', // No path
+    'GET',
+    {},
     { lat: String(lat), lon: String(lon), zoom: '15', width: '800', height: '600' }
   );
-  // The response is a URL to the image (Appwrite returns a URL to the binary output)
-  // But in Appwrite, binary responses are returned as a URL in execution.response if set up
-  // If not, fallback to the executions endpoint with the execution ID
-  // For now, we assume the function returns the image as binary, so we construct the URL:
-  return `https://fra.cloud.appwrite.io/v1/functions/get-mapbox/executions/${execution.$id}/output`;
+  // Use the correct output URL pattern for Appwrite
+  return `https://fra.cloud.appwrite.io/v1/projects/geolocatr/functions/get-mapbox/executions/${execution.$id}/output`;
 }
 
 /**
@@ -196,13 +195,18 @@ async function callGeminiFunction(base64Image) {
     ? base64Image.split(',')[1]
     : base64Image;
 
+  const payload = JSON.stringify({ image: base64Data });
+
   const execution = await functions.createExecution(
     'gemini',
-    base64Data,  // Send raw base64 string
+    payload,
     false,
     '',
     'POST',
-    { 'Content-Type': 'application/octet-stream' }  // Correct content type
+    {
+      'Content-Type': 'application/json',
+      'Content-Length': String(payload.length)
+    }
   );
 
   return {
