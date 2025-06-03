@@ -39,11 +39,7 @@
             "logging": true,
             "entrypoint": "src/main.js",
             "commands": "npm install",
-            "path": "functions/gemini",
-            "environmentVariables": {
-                "GEMINI_API_KEY": "your-api-key-here",
-                "GEMINI_MODEL": "gemini-pro-vision"
-            }
+            "path": "functions/gemini"
         }
     ]
 }

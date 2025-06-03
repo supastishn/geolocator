@@ -43,4 +43,6 @@ Sample `200` Response:
 
 ## 🔒 Environment Variables
 
-No environment variables required.
+Environment variables should be declared in Appwrite Console for each function:
+- For `get-mapbox`: Add MAPBOX_TOKEN
+- For `gemini`: Add GEMINI_API_KEY and GEMINI_MODEL
