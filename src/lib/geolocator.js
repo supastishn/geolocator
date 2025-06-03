@@ -175,7 +175,7 @@ async function getSatelliteImage(lat, lon) {
     'get-mapbox',
     '', // No body needed for GET
     false,
-    '', // No path
+    '/', // Path should be '/'
     'GET',
     {},
     { lat: String(lat), lon: String(lon), zoom: '15', width: '800', height: '600' }
@@ -201,7 +201,7 @@ async function callGeminiFunction(base64Image) {
     'gemini',
     payload,
     false,
-    '',
+    '/', // Path should be '/'
     'POST',
     {
       'Content-Type': 'application/json',
