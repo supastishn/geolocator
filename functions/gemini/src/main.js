@@ -14,19 +14,17 @@ Identify locations using satellite imagery. Respond in EXACTLY this format:
 </answer>
 `.trim();
 
+// Remove the req.bodyRaw check since we're using body parsing
 export default async ({ req, res, log, error }) => {
-  // Handle /ping for health check
   if (req.path === "/ping") {
     return res.text("Pong");
   }
 
-  // Parse JSON body for image data
-  if (!req.bodyRaw || !req.body) {
-    return res.json({ error: "Missing request body" }, 400);
-  }
-
   try {
-    const { image: base64Image } = req.body;
+    // Parse body as JSON
+    const body = JSON.parse(req.bodyRaw || '{}');
+    const base64Image = body.image; // Direct access to image field
+
     if (!base64Image) {
       return res.json({ error: "Missing 'image' field in request" }, 400);
     }

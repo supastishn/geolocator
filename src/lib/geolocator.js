@@ -191,14 +191,18 @@ async function getSatelliteImage(lat, lon) {
  * @returns {Promise<{ok: boolean, json: function(): Promise<any>}>}
  */
 async function callGeminiFunction(base64Image) {
-  // Remove data URL prefix if exists
+  // Remove data URL prefix
   const base64Data = base64Image.startsWith('data:')
     ? base64Image.split(',')[1]
     : base64Image;
 
   const execution = await functions.createExecution(
     'gemini',
-    JSON.stringify({ image: base64Data })
+    base64Data,  // Send raw base64 string
+    false,
+    '',
+    'POST',
+    { 'Content-Type': 'application/octet-stream' }  // Correct content type
   );
 
   return {
