@@ -30,7 +30,7 @@ export default async ({ req, res, log, error }) => {
     }
 
     const apiKey = process.env.GEMINI_API_KEY;
-    const model = process.env.GEMINI_MODEL || 'gemini-pro-vision';
+    const model = process.env.GEMINI_MODEL || 'gemini-2.5-flash-preview-05-20';
     const baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models';
 
     if (!apiKey) {
