@@ -1,16 +1,18 @@
 import fetch from 'node-fetch';
 
+// New system prompt for Gemini
 const SYSTEM_PROMPT = `
-You are an expert geolocation AI. Your task is to identify locations using satellite imagery.
-Respond EXCLUSIVELY using these XML tags: 
-<thinking>[Reasoning]</thinking>
+You are an expert geolocation AI. 
+Identify locations using satellite imagery. Respond in EXACTLY this format:
+
+<thinking>Reasoning steps...</thinking>
 <satellite>
-  <latitude>[Decimal]</latitude>
-  <longitude>[Decimal]</longitude>
+  <latitude>Decimal coordinate</latitude>
+  <longitude>Decimal coordinate</longitude>
 </satellite>
 <answer>
-  <city>[City]</city>
-  <country>[Country]</country>
+  <city>City name</city>
+  <country>Country name</country>
 </answer>
 `.trim();
 
@@ -31,54 +33,56 @@ export default async ({ req, res, log, error }) => {
       return res.json({ error: "Missing 'image' field in request" }, 400);
     }
 
-    // Prepare OpenAI request
-    const apiKey = process.env.OPENAI_API_KEY;
-    if (!apiKey) {
-      return res.json({ error: "OPENAI_API_KEY not set in environment" }, 500);
-    }
-    const openaiUrl = `${process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1'}/chat/completions`;
+    const apiKey = process.env.GEMINI_API_KEY;
+    const model = process.env.GEMINI_MODEL || 'gemini-pro-vision';
+    const baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models';
 
-    const response = await fetch(openaiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: process.env.OPENAI_MODEL || 'gpt-4-vision-preview',
-        max_tokens: 1000,
-        messages: [
-          {
-            role: "system",
-            content: SYSTEM_PROMPT
-          },
-          {
-            role: "user",
-            content: [
+    if (!apiKey) {
+      return res.json({ error: "GEMINI_API_KEY not set" }, 500);
+    }
+
+    const response = await fetch(
+      `${baseUrl}/${model}:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [
+              { text: SYSTEM_PROMPT },
               {
-                type: "text",
                 text: "Identify the location from this satellite image"
               },
               {
-                type: "image_url",
-                image_url: {
-                  url: `data:image/jpeg;base64,${base64Image}`
+                inline_data: {
+                  mime_type: "image/jpeg",
+                  data: base64Image
                 }
               }
             ]
-          }
-        ]
-      })
-    });
+          }]
+        })
+      }
+    );
 
     if (!response.ok) {
       const data = await response.text();
-      error(`OpenAI error ${response.status}: ${data}`);
-      return res.json({ error: "OpenAI API error" }, 502);
+      error(`Gemini error ${response.status}: ${data}`);
+      return res.json({ error: "Gemini API error" }, 502);
     }
 
     const result = await response.json();
-    return res.json(result);
+    // Extract and return response text in OpenAI-like format for compatibility
+    const content = result?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    return res.json({
+      choices: [{
+        message: {
+          content
+        }
+      }]
+    });
   } catch (e) {
     error(e.message);
     return res.json({ error: "Internal server error" }, 500);
