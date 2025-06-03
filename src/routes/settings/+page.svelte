@@ -1,5 +1,6 @@
 <script>
   import { settings } from '$lib/stores.js';
+  import { auth } from '$lib/authStore';
   
   let provider = $settings.provider;
   let apiKey = $settings.apiKey;
@@ -7,8 +8,16 @@
   let model = $settings.model;
   let saved = false;
   let saveTimeout;
+  let saveError = '';
 
   const saveSettings = () => {
+    if (provider === 'gemini' && !$auth) {
+      saveError = "Gemini function is only available for logged in users";
+      setTimeout(() => saveError = '', 3000);
+      // Change back to "no setup"
+      provider = 'openai';
+      return;
+    }
     $settings = { provider, apiKey, baseUrl, model };
     saved = true;
     clearTimeout(saveTimeout);
@@ -33,7 +42,7 @@
     </label>
     <label>
       <input type="radio" name="provider" bind:group={provider} value="gemini" />
-      Gemini Function
+      {!$auth ? "No setup (Requires login)" : "Gemini Function"}
     </label>
   </div>
 
@@ -58,7 +67,9 @@
              class="centered-input" />
     </label>
   {:else}
-    <p class="info-note">Using Apprite Gemini function - no configuration needed</p>
+    <p class="info-note theme-aware">
+      Using Appwrite Gemini function - no configuration needed
+    </p>
   {/if}
 
   <div class="button-row">
@@ -66,6 +77,9 @@
   </div>
   {#if saved}
     <div class="save-feedback">Settings saved!</div>
+  {/if}
+  {#if saveError}
+    <div class="save-feedback error">{saveError}</div>
   {/if}
 </div>
 
@@ -173,5 +187,9 @@ label {
 		opacity: 1;
 		transform: translateY(0);
 	}
+}
+
+.theme-aware {
+  color: var(--color-text);
 }
 </style>

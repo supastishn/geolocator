@@ -38,7 +38,7 @@
       <div class="auth-container">
         {#if $auth}
           <span class="user-email">{$auth.email}</span>
-          <button on:click={() => logout()} class="auth-button">Logout</button>
+          <button on:click={() => logout()} class="auth-button logout">Logout</button>
         {:else}
           <a href="{base}/login" class="auth-button login">Login</a>
           <a href="{base}/register" class="auth-button register">Register</a>
@@ -184,5 +184,17 @@ nav a:hover, nav a[aria-current] {
   background: var(--color-primary-hover);
   transform: translateY(-1px);
   box-shadow: 0 4px 6px rgba(99, 102, 241, 0.3);
+}
+
+.logout {
+  background: var(--color-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--color-text);
+}
+
+.logout:hover {
+  background: var(--color-primary);
+  color: white;
+  border-color: transparent;
 }
 </style>
