@@ -1,6 +1,7 @@
 <script>
   import { login } from '$lib/authStore';
   import { goto } from '$app/navigation';
+  import { base } from '$app/paths';
   
   let email = '';
   let password = '';
@@ -39,7 +40,7 @@
         {loading ? 'Logging in...' : 'Login'}
       </button>
     </form>
-    <p>Don't have an account? <a href="/register">Register</a></p>
+    <p>Don't have an account? <a href="{base}/register">Register</a></p>
   </div>
 </main>
 

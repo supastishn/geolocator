@@ -1,3 +1,7 @@
+<script>
+  import { base } from '$app/paths';
+</script>
+
 <svelte:head>
   <title>Geobot - AI Location Identification</title>
   <meta name="description" content="Identify locations using AI and satellite imagery" />
@@ -10,7 +14,7 @@
     </h1>
     <p>Upload an image, and our AI will analyze it to determine the location using satellite imagery</p>
     <div class="cta-buttons">
-      <a href="/app" class="cta-button">Try It Now</a>
+      <a href="{base}/app" class="cta-button">Try It Now</a>
       <a href="#how-it-works" class="secondary-button">How It Works</a>
     </div>
   </div>
@@ -61,7 +65,7 @@
 <div class="call-to-action">
   <h2>Ready to uncover the world?</h2>
   <p>Join thousands of users discovering new places with Geobot</p>
-  <a href="/app" class="cta-button large">Get Started Free</a>
+  <a href="{base}/app" class="cta-button large">Get Started Free</a>
 </div>
 
 <style>
@@ -81,7 +85,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: url('/static/black_circle_360x360.png') center/cover no-repeat;
+    background: url('{base}/static/black_circle_360x360.png') center/cover no-repeat;
     opacity: 0.1;
   }
 

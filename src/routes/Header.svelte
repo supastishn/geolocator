@@ -2,6 +2,7 @@
 	import { page } from '$app/stores';
 	import { theme } from '$lib/stores';
 	import { auth, logout } from '$lib/authStore';
+	import { base } from '$app/paths';
 
 	const toggleTheme = () => {
 		$theme = $theme === 'light' ? 'dark' : 'light';
@@ -12,19 +13,19 @@
   <nav>
     <div class="nav-content">
       <div class="nav-left">
-        <a class="logo" href="/">
-          <img src="/favicon.png" alt="Geobot" class="logo-img" />
+        <a class="logo" href="{base}/">
+          <img src="{base}/favicon.png" alt="Geobot" class="logo-img" />
         </a>
       </div>
       <ul class="nav-links nav-links-center">
-        <li aria-current={$page.url.pathname === '/' ? 'page' : undefined}>
-          <a href="/">Home</a>
+        <li aria-current={$page.url.pathname === `${base}/` ? 'page' : undefined}>
+          <a href="{base}/">Home</a>
         </li>
-        <li aria-current={$page.url.pathname === '/app' ? 'page' : undefined}>
-          <a href="/app">App</a>
+        <li aria-current={$page.url.pathname === `${base}/app` ? 'page' : undefined}>
+          <a href="{base}/app">App</a>
         </li>
-        <li aria-current={$page.url.pathname === '/settings' ? 'page' : undefined}>
-          <a href="/settings">Settings</a>
+        <li aria-current={$page.url.pathname === `${base}/settings` ? 'page' : undefined}>
+          <a href="{base}/settings">Settings</a>
         </li>
       </ul>
       <!-- Theme toggle container -->

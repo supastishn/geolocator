@@ -4,6 +4,9 @@ export default {
   kit: {
     adapter: adapter({
       out: 'build'
-    })
+    }),
+    paths: {
+      base: '/geolocator'
+    }
   }
 };

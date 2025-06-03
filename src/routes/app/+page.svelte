@@ -5,6 +5,7 @@
   import { marked } from 'marked';
   import DOMPurify from 'dompurify';
   import { browser } from '$app/environment';
+  import { base } from '$app/paths';
 
   marked.setOptions({ breaks: true }); // Convert newlines to <br>
   // Initialize purify only in the browser
@@ -446,5 +447,7 @@ h1 {
 	border-radius: var(--border-radius);
 	box-shadow: var(--shadow-lg);
 	border: 1px solid var(--border-color);
+	/* Add base path to background image if needed */
+	background-image: url('{base}/static/black_circle_360x360.png');
 }
 </style>

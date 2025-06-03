@@ -1,6 +1,7 @@
 <script>
   import { register } from '$lib/authStore';
   import { goto } from '$app/navigation';
+  import { base } from '$app/paths';
   
   let name = '';
   let email = '';
@@ -44,7 +45,7 @@
         {loading ? 'Creating account...' : 'Register'}
       </button>
     </form>
-    <p>Already have an account? <a href="/login">Login</a></p>
+    <p>Already have an account? <a href="{base}/login">Login</a></p>
   </div>
 </main>
 <style>
