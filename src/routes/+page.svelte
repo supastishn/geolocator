@@ -4,11 +4,14 @@
   import MapView from '$lib/MapView.svelte';
   import { marked } from 'marked';
   import DOMPurify from 'dompurify';
-  import { JSDOM } from 'jsdom';
+  import { browser } from '$app/environment';
 
   marked.setOptions({ breaks: true }); // Convert newlines to <br>
-  const window = new JSDOM('').window;
-  const purify = DOMPurify(window);
+  // Initialize purify only in the browser
+  let purify;
+  if (browser) {
+    purify = DOMPurify(window);
+  }
 
   let imageFile;
   let result = null;
@@ -213,7 +216,7 @@
         <div class="thinking">
           <strong>Thinking:</strong>
           <article class="thinking-box markdown">
-            {@html purify.sanitize(marked.parse(thinking || ''))}
+            {@html purify?.sanitize(marked.parse(thinking || ''))}
           </article>
         </div>
       {/if}
