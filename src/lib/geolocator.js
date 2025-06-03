@@ -169,7 +169,7 @@ export async function getLocation(imageData, onStreamChunk = null, mapUrl = null
 }
 
 function getSatelliteImage(lat, lon) {
-  return `https://fra.cloud.appwrite.io/v1/functions/get-mapbox/executions?lat=${lat}&lon=${lon}&zoom=15&width=800&height=600`;
+  return `https://fra.cloud.appwrite.io/v1/projects/geolocatr/functions/get-mapbox/executions?lat=${lat}&lon=${lon}&zoom=15&width=800&height=600`;
 }
 
 // Gemini function call helper
@@ -179,7 +179,7 @@ function callGeminiFunction(base64Image) {
     ? base64Image.split(',')[1]
     : base64Image;
 
-  return fetch('https://fra.cloud.appwrite.io/v1/functions/gemini/executions', {
+  return fetch('https://fra.cloud.appwrite.io/v1/projects/geolocatr/functions/gemini/executions', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ image: base64Data })
