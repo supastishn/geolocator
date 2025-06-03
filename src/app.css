@@ -1,7 +1,7 @@
 @import '@fontsource/fira-mono';
 
 :root {
-	--font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+	--font-body: Georgia, 'Times New Roman', Times, serif;
 	--font-mono: 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace;
 	
 	/* Modern color palette */
@@ -63,6 +63,10 @@ body {
 	margin: 0;
 	background: var(--color-bg-1);
 	transition: background-color 0.3s ease, color 0.3s ease;
+	/* Add common font styling */
+	font-family: var(--font-body);
+	font-size: 1.1rem;
+	line-height: 1.6;
 }
 
 h1,

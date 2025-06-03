@@ -264,6 +264,13 @@
 	border-radius: var(--border-radius);
 	box-shadow: var(--shadow-lg);
 	border: 1px solid var(--border-color);
+	font-family: var(--font-body);
+}
+
+.container h1 {
+	font-family: var(--font-body);
+	font-weight: 700;
+	letter-spacing: -1px;
 }
 
 h1 {
@@ -345,7 +352,8 @@ h1 {
 	padding: 1rem;
 	font-family: var(--font-mono);
 	color: var(--color-text-secondary);
-	font-size: 0.875rem;
+	font-size: 1.05rem;
+	line-height: 1.7;
 	border-left: 4px solid var(--color-primary);
 	margin-top: 0.5rem;
 }

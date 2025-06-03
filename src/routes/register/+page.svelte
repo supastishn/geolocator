@@ -64,12 +64,19 @@
     width: 100%;
     max-width: 400px;
     border: 1px solid var(--border-color);
+    font-family: var(--font-body);
   }
 
-  h2 {
+  .auth-card h2 {
+    font-size: 2rem;
+    letter-spacing: -0.5px;
     text-align: center;
     margin-bottom: 1.5rem;
     color: var(--color-text);
+  }
+
+  .auth-card p, .auth-card a {
+    font-size: 1.1rem;
   }
 
   form {
