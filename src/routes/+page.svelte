@@ -264,11 +264,9 @@
 	border-radius: var(--border-radius);
 	box-shadow: var(--shadow-lg);
 	border: 1px solid var(--border-color);
-	font-family: var(--font-body);
 }
 
 .container h1 {
-	font-family: var(--font-body);
 	font-weight: 700;
 	letter-spacing: -1px;
 }

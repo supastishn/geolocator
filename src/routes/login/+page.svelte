@@ -60,7 +60,6 @@
     width: 100%;
     max-width: 400px;
     border: 1px solid var(--border-color);
-    font-family: var(--font-body);
   }
 
   .auth-card h2 {

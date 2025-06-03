@@ -57,12 +57,10 @@
 	border-radius: var(--border-radius);
 	box-shadow: var(--shadow-lg);
 	border: 1px solid var(--border-color);
-	font-family: var(--font-body);
 	font-size: 1.2rem;
 }
 
 .settings-container label {
-	font-family: var(--font-body);
 	font-size: 1.2rem;
 }
 
