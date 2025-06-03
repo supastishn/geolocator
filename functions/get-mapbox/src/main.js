@@ -24,7 +24,10 @@ export default async ({ req, res, log, error }) => {
       }, imageResponse.status);
     }
 
-    const buffer = await imageResponse.buffer();
+    // Use arrayBuffer() and convert to Buffer for Node.js
+    const arrayBuffer = await imageResponse.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
     return res.binary(buffer, imageResponse.status, {
       'Content-Type': 'image/png'
     });
