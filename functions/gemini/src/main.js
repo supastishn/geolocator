@@ -71,7 +71,15 @@ export default async ({ req, res, log, error }) => {
 
     const result = await response.json();
     // Extract and return response text in OpenAI-like format for compatibility
-    const content = result?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    let content = '';
+    if (result?.candidates?.[0]?.content?.parts) {
+      content = result.candidates[0].content.parts
+        .filter(part => part.text)
+        .map(part => part.text)
+        .join('\n\n');  // Support multi-paragraph responses
+    } else if (result?.candidates?.[0]?.content?.content) {
+      content = result.candidates[0].content.content;
+    }
     return res.json({
       choices: [{
         message: {

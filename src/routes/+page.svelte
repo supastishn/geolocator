@@ -2,6 +2,13 @@
   import { settings } from '$lib/stores.js';
   import { getLocation } from '$lib/geolocator';
   import MapView from '$lib/MapView.svelte';
+  import { marked } from 'marked';
+  import DOMPurify from 'dompurify';
+  import { JSDOM } from 'jsdom';
+
+  marked.setOptions({ breaks: true }); // Convert newlines to <br>
+  const window = new JSDOM('').window;
+  const purify = DOMPurify(window);
 
   let imageFile;
   let result = null;
@@ -205,7 +212,9 @@
       {#if thinking}
         <div class="thinking">
           <strong>Thinking:</strong>
-          <div class="thinking-box">{thinking}</div>
+          <article class="thinking-box markdown">
+            {@html purify.sanitize(marked.parse(thinking || ''))}
+          </article>
         </div>
       {/if}
       <div class="coords-row">
