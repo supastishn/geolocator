@@ -24,24 +24,21 @@
           <a href="/settings">Settings</a>
         </li>
       </ul>
-      <div class="nav-right" style="align-items: center; gap: 0.75rem; min-width: 180px; justify-content: flex-end;">
-        <!-- Move theme toggle to separate container -->
-        <div class="theme-container">
-          <button on:click={toggleTheme} class="theme-toggle">
-            {$theme === 'light' ? '🌙' : '☀️'}
-          </button>
-        </div>
-
-        <!-- Auth container now only has authentication elements -->
-        <div class="auth-container" style="display: flex; gap: 0.5rem;">
-          {#if $auth}
-            <span class="user-email">{$auth.email}</span>
-            <button on:click={logout} class="auth-button">Logout</button>
-          {:else}
-            <a href="/login" class="auth-button login">Login</a>
-            <a href="/register" class="auth-button register">Register</a>
-          {/if}
-        </div>
+      <!-- Theme toggle container -->
+      <div class="theme-container">
+        <button on:click={toggleTheme} class="theme-toggle">
+          {$theme === 'light' ? '🌙' : '☀️'}
+        </button>
+      </div>
+      <!-- Auth container -->
+      <div class="auth-container">
+        {#if $auth}
+          <span class="user-email">{$auth.email}</span>
+          <button on:click={logout} class="auth-button">Logout</button>
+        {:else}
+          <a href="/login" class="auth-button login">Login</a>
+          <a href="/register" class="auth-button register">Register</a>
+        {/if}
       </div>
     </div>
   </nav>
@@ -71,6 +68,18 @@ header {
 	margin: 0 auto;
 	height: 4rem;
 	padding: 0 1.5rem;
+	gap: 1rem;
+}
+
+/* Add styles for new direct containers */
+.theme-container, .auth-container {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+}
+
+.user-email {
+	padding: 0 0.5rem;
 }
 
 .nav-left {
