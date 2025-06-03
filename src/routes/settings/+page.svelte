@@ -18,6 +18,10 @@
   };
 </script>
 
+<svelte:head>
+  <title>Settings - Geobot</title>
+</svelte:head>
+
 <div class="settings-container">
   <h2>API Settings</h2>
   

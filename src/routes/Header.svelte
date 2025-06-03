@@ -13,7 +13,7 @@
     <div class="nav-content">
       <div class="nav-left">
         <a class="logo" href="/">
-          <img src="/favicon.png" alt="AI Geolocator" class="logo-img" />
+          <img src="/favicon.png" alt="Geobot" class="logo-img" />
         </a>
       </div>
       <ul class="nav-links nav-links-center">

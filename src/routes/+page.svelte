@@ -172,12 +172,12 @@
 </script>
 
 <svelte:head>
-  <title>AI Geolocator</title>
+  <title>Geobot</title>
 </svelte:head>
 
 <main class="container">
   <h1>
-    <span class="emoji">🛰️</span> AI Geolocator
+    <span class="emoji">🛰️</span> Geobot
   </h1>
   
   <div class="upload-area">
