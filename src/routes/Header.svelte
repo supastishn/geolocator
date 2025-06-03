@@ -38,10 +38,10 @@
       <div class="auth-container">
         {#if $auth}
           <span class="user-email">{$auth.email}</span>
-          <button on:click={logout} class="auth-button">Logout</button>
+          <button on:click={() => logout()} class="auth-button">Logout</button>
         {:else}
-          <a href="/login" class="auth-button login">Login</a>
-          <a href="/register" class="auth-button register">Register</a>
+          <a href="{base}/login" class="auth-button login">Login</a>
+          <a href="{base}/register" class="auth-button register">Register</a>
         {/if}
       </div>
     </div>

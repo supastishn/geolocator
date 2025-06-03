@@ -14,7 +14,8 @@
     error = '';
     try {
       await register(email, password, name);
-      goto('/');
+      // Fix redirect
+      goto(`${base}/`);
     } catch (err) {
       error = err.message;
     }

@@ -13,7 +13,8 @@
     error = '';
     try {
       await login(email, password);
-      goto('/');
+      // Fix redirect
+      goto(`${base}/`);
     } catch (err) {
       error = err.message;
     }

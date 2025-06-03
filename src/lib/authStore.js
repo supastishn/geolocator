@@ -1,5 +1,6 @@
 import { writable } from 'svelte/store';
 import { Client, Account, Functions } from 'appwrite';
+import { base } from '$app/paths';
 
 export const client = new Client()
   .setEndpoint('https://fra.cloud.appwrite.io/v1')
@@ -26,4 +27,6 @@ export const register = async (email, password, name) => {
 export const logout = async () => {
   await account.deleteSession('current');
   auth.set(null);
+  // Add window.location redirect with base
+  window.location.href = window.location.origin + base + '/';
 };
