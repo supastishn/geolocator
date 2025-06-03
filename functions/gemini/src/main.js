@@ -1,35 +1,68 @@
-import { Client, Users } from 'node-appwrite';
+import fetch from 'node-fetch';
 
-// This Appwrite function will be executed every time your function is triggered
 export default async ({ req, res, log, error }) => {
-  // You can use the Appwrite SDK to interact with other services
-  // For this example, we're using the Users service
-  const client = new Client()
-    .setEndpoint(process.env.APPWRITE_FUNCTION_API_ENDPOINT)
-    .setProject(process.env.APPWRITE_FUNCTION_PROJECT_ID)
-    .setKey(req.headers['x-appwrite-key'] ?? '');
-  const users = new Users(client);
-
-  try {
-    const response = await users.list();
-    // Log messages and errors to the Appwrite Console
-    // These logs won't be seen by your end users
-    log(`Total users: ${response.total}`);
-  } catch(err) {
-    error("Could not list users: " + err.message);
-  }
-
-  // The req object contains the request data
+  // Handle /ping for health check
   if (req.path === "/ping") {
-    // Use res object to respond with text(), json(), or binary()
-    // Don't forget to return a response!
     return res.text("Pong");
   }
 
-  return res.json({
-    motto: "Build like a team of hundreds_",
-    learn: "https://appwrite.io/docs",
-    connect: "https://appwrite.io/discord",
-    getInspired: "https://builtwith.appwrite.io",
-  });
+  // Parse JSON body for image data
+  if (!req.bodyRaw || !req.body) {
+    return res.json({ error: "Missing request body" }, 400);
+  }
+
+  try {
+    const { image: base64Image } = req.body;
+    if (!base64Image) {
+      return res.json({ error: "Missing 'image' field in request" }, 400);
+    }
+
+    // Prepare OpenAI request
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      return res.json({ error: "OPENAI_API_KEY not set in environment" }, 500);
+    }
+    const openaiUrl = `${process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1'}/chat/completions`;
+
+    const response = await fetch(openaiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: process.env.OPENAI_MODEL || 'gpt-4-vision-preview',
+        max_tokens: 1000,
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: "Identify the location from this satellite image"
+              },
+              {
+                type: "image_url",
+                image_url: {
+                  url: `data:image/jpeg;base64,${base64Image}`
+                }
+              }
+            ]
+          }
+        ]
+      })
+    });
+
+    if (!response.ok) {
+      const data = await response.text();
+      error(`OpenAI error ${response.status}: ${data}`);
+      return res.json({ error: "OpenAI API error" }, 502);
+    }
+
+    const result = await response.json();
+    return res.json(result);
+  } catch (e) {
+    error(e.message);
+    return res.json({ error: "Internal server error" }, 500);
+  }
 };

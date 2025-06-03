@@ -39,7 +39,11 @@
             "logging": true,
             "entrypoint": "src/main.js",
             "commands": "npm install",
-            "path": "functions/gemini"
+            "path": "functions/gemini",
+            "environmentVariables": {
+                "OPENAI_API_KEY": "your-api-key-here",
+                "OPENAI_BASE_URL": "https://api.openai.com/v1"
+            }
         }
     ]
 }
