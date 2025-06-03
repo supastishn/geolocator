@@ -1,450 +1,328 @@
-<script>
-  import { settings } from '$lib/stores.js';
-  import { getLocation } from '$lib/geolocator';
-  import MapView from '$lib/MapView.svelte';
-  import { marked } from 'marked';
-  import DOMPurify from 'dompurify';
-  import { browser } from '$app/environment';
-
-  marked.setOptions({ breaks: true }); // Convert newlines to <br>
-  // Initialize purify only in the browser
-  let purify;
-  if (browser) {
-    purify = DOMPurify(window);
-  }
-
-  let imageFile;
-  let result = null;
-  let isLoading = false;
-  let error = null;
-  let streamingXml = '';
-  let finalXml = '';
-  let streaming = false;
-
-  // New state for parsed info
-  let thinking = '';
-  let latitude = '';
-  let longitude = '';
-  let city = '';
-  let country = '';
-  let xmlDoc = null;
-  let mapImage = null; // stores the satellite image URL for iteration
-  let imageBase64 = null; // stores the original image base64 for iteration
-
-  // Manual iteration workflow state
-  // let iterationPhase = 'initial'; // Removed: no longer needed
-
-  // Helper to parse XML for <thinking>, <latitude>, <longitude>, <city>, <country>
-  function parseXmlFields(xml) {
-    try {
-      // Wrap XML content in a root element
-      const wrappedXml = `<root>${xml}</root>`;
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(wrappedXml, "text/xml");
-      return {
-        thinking: doc.querySelector('thinking')?.textContent || '',
-        latitude: doc.querySelector('latitude')?.textContent || '',
-        longitude: doc.querySelector('longitude')?.textContent || '',
-        city: doc.querySelector('city')?.textContent || '',
-        country: doc.querySelector('country')?.textContent || '',
-        hasSatellite: !!doc.querySelector('satellite'),
-        hasAnswer: !!doc.querySelector('answer'),
-        xmlDoc: doc
-      };
-    } catch {
-      return {};
-    }
-  }
-
-  // Helper to get satellite image URL (should match geolocator.js)
-  async function getSatelliteImage(lat, lon) {
-    return `https://fra.cloud.appwrite.io/v1/functions/get-mapbox/executions?lat=${lat}&lon=${lon}&zoom=15&width=800&height=600`;
-  }
-
-  // Helper to read file as base64
-  function readFileAsBase64(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  }
-
-  // Initial submit: only 1 iteration, show info, allow user to iterate
-  const handleSubmit = async () => {
-    if (!imageFile) return;
-
-    isLoading = true;
-    error = null;
-    result = null;
-    streamingXml = '';
-    finalXml = '';
-    streaming = true;
-    thinking = '';
-    latitude = '';
-    longitude = '';
-    city = '';
-    country = '';
-    xmlDoc = null;
-    mapImage = null; // stores the satellite image URL for iteration
-    imageBase64 = null; // stores the original image base64 for iteration
-
-    try {
-      imageBase64 = await readFileAsBase64(imageFile[0]);
-      // Only do 1 iteration for initial run
-      const location = await getLocation(
-        imageBase64,
-        async (xml) => {
-          streamingXml = xml;
-          const fields = parseXmlFields(xml);
-          thinking = fields.thinking;
-          latitude = fields.latitude;
-          longitude = fields.longitude;
-          city = fields.city;
-          country = fields.country;
-          xmlDoc = fields.xmlDoc;
-
-          // If satellite is requested, store coordinates
-          if (fields.hasSatellite && latitude && longitude) {
-            mapImage = await getSatelliteImage(latitude, longitude);
-          }
-        }
-      );
-      finalXml = streamingXml;
-      result = location;
-      isLoading = false;
-      streaming = false;
-
-      if (!location && !mapImage) {
-        error = "Failed to identify location. Please try another image.";
-      }
-    } catch (err) {
-      error = err?.message || 'An error occurred during location analysis.';
-      isLoading = false;
-      streaming = false;
-    }
-  };
-
-  // User triggers next iteration (satellite)
-  const handleIterate = async () => {
-    isLoading = true;
-    error = null;
-    streaming = true;
-
-    try {
-      // Use stored imageBase64 and mapImage for dual-image iteration
-      if (!imageBase64 || !mapImage) {
-        error = "Missing image or satellite data for iteration.";
-        isLoading = false;
-        streaming = false;
-        return;
-      }
-      const location = await getLocation(
-        imageBase64,
-        async (xml) => {
-          streamingXml = xml;
-          const fields = parseXmlFields(xml);
-          thinking = fields.thinking;
-          latitude = fields.latitude;
-          longitude = fields.longitude;
-          city = fields.city;
-          country = fields.country;
-          xmlDoc = fields.xmlDoc;
-
-          if (fields.hasSatellite && latitude && longitude) {
-            mapImage = await getSatelliteImage(latitude, longitude);
-          }
-        },
-        mapImage // pass satellite image url for dual-image
-      );
-      finalXml = streamingXml;
-      result = location;
-      isLoading = false;
-      streaming = false;
-
-      if (!location && !result) {
-        error = "Failed to identify location. Please try another image.";
-      }
-    } catch (err) {
-      error = err?.message || 'An error occurred during satellite iteration.';
-      isLoading = false;
-      streaming = false;
-    }
-  };
-</script>
-
 <svelte:head>
-  <title>Geobot</title>
+  <title>Geobot - AI Location Identification</title>
+  <meta name="description" content="Identify locations using AI and satellite imagery" />
 </svelte:head>
 
-<main class="container">
-  <h1>
-    <span class="emoji">🛰️</span> Geobot
-  </h1>
-  
-  <div class="upload-area">
-    <label class="file-label">
-      <input 
-        type="file" 
-        accept="image/*" 
-        bind:files={imageFile}
-        disabled={isLoading}
-      />
-      <span>{imageFile && imageFile.length ? imageFile[0].name : 'Choose an image...'}</span>
-    </label>
-    <button on:click={handleSubmit} disabled={isLoading || !imageFile}>
-      {isLoading ? 'Analyzing Location...' : 'Find Location'}
-    </button>
+<div class="hero">
+  <div class="hero-content">
+    <h1>
+      <span class="emoji">🛰️</span> Identify Locations with AI
+    </h1>
+    <p>Upload an image, and our AI will analyze it to determine the location using satellite imagery</p>
+    <div class="cta-buttons">
+      <a href="/app" class="cta-button">Try It Now</a>
+      <a href="#how-it-works" class="secondary-button">How It Works</a>
+    </div>
   </div>
+</div>
 
-  {#if streaming && streamingXml}
-    <div class="xml-output">
-      <div class="title">Streaming XML output:</div>
-      <pre>{streamingXml.split('\n').slice(-8).join('\n')}</pre>
+<section class="how-it-works" id="how-it-works">
+  <h2>How Geobot Works</h2>
+  <div class="steps">
+    <div class="step">
+      <div class="step-number">1</div>
+      <h3>Upload an Image</h3>
+      <p>Provide any landscape or location photo from your camera roll.</p>
     </div>
-  {/if}
-
-  {#if error}
-    <div class="error">{error}</div>
-  {/if}
-
-  {#if !isLoading && (thinking || latitude || longitude)}
-    <div class="ai-info">
-      <h2>AI Reasoning</h2>
-      {#if thinking}
-        <div class="thinking">
-          <strong>Thinking:</strong>
-          <article class="thinking-box markdown">
-            {@html purify?.sanitize(marked.parse(thinking || ''))}
-          </article>
-        </div>
-      {/if}
-      <div class="coords-row">
-        {#if latitude}
-          <span><strong>Latitude:</strong> {latitude}</span>
-        {/if}
-        {#if longitude}
-          <span><strong>Longitude:</strong> {longitude}</span>
-        {/if}
-      </div>
-      {#if city || country}
-        <div class="city-country-row">
-          {#if city}
-            <span><strong>City:</strong> {city}</span>
-          {/if}
-          {#if country}
-            <span><strong>Country:</strong> {country}</span>
-          {/if}
-        </div>
-      {/if}
+    <div class="step">
+      <div class="step-number">2</div>
+      <h3>AI Analysis</h3>
+      <p>Our powerful AI analyzes geographical features in the image.</p>
     </div>
-  {/if}
-
-  {#if !isLoading && finalXml}
-    <div class="xml-output debug-xml">
-      <div class="title">Final XML Output:</div>
-      <pre>{finalXml}</pre>
+    <div class="step">
+      <div class="step-number">3</div>
+      <h3>Location Found</h3>
+      <p>Get precise coordinates and location details on an interactive map.</p>
     </div>
-  {/if}
+  </div>
+</section>
 
-  {#if !isLoading && mapImage && !result}
-    <div class="satellite-view">
-      <img src={mapImage} alt="Satellite view" class="satellite-image" />
+<section class="features">
+  <h2>Powered By Cutting-Edge Technology</h2>
+  <div class="tech-grid">
+    <div class="tech-card">
+      <div class="tech-icon">🤖</div>
+      <h3>AI Vision</h3>
+      <p>Advanced computer vision algorithms identify land features and terrain patterns.</p>
     </div>
-  {/if}
+    <div class="tech-card">
+      <div class="tech-icon">🌐</div>
+      <h3>Satellite Integration</h3>
+      <p>Compare with satellite imagery for precise location verification.</p>
+    </div>
+    <div class="tech-card">
+      <div class="tech-icon">🗺️</div>
+      <h3>Mapping Technology</h3>
+      <p>Interactive maps display identified locations with pinpoint accuracy.</p>
+    </div>
+  </div>
+</section>
 
-  {#if result}
-    <div class="result">
-      <h2>Location Found:</h2>
-      <p class="location">{result.city}, {result.country}</p>
-      <p class="coordinates">Coordinates: {result.latitude}, {result.longitude}</p>
-      <MapView 
-        lat={result.latitude} 
-        lng={result.longitude} 
-      />
-    </div>
-  {/if}
-</main>
+<div class="call-to-action">
+  <h2>Ready to uncover the world?</h2>
+  <p>Join thousands of users discovering new places with Geobot</p>
+  <a href="/app" class="cta-button large">Get Started Free</a>
+</div>
 
 <style>
-.container {
-	background: var(--color-surface);
-	max-width: 800px;
-	margin: 2rem auto;
-	padding: 2rem;
-	border-radius: var(--border-radius);
-	box-shadow: var(--shadow-lg);
-	border: 1px solid var(--border-color);
-}
+  .hero {
+    background: linear-gradient(135deg, #6366f1, #10b981);
+    color: white;
+    text-align: center;
+    padding: 6rem 2rem 8rem;
+    position: relative;
+    overflow: hidden;
+  }
 
-.container h1 {
-	font-weight: 700;
-	letter-spacing: -1px;
-}
+  .hero:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('/static/black_circle_360x360.png') center/cover no-repeat;
+    opacity: 0.1;
+  }
 
-h1 {
-	color: var(--color-text);
-	margin-bottom: 2rem;
-	font-size: 2.5rem;
-	font-weight: 700;
-	text-align: center;
-	background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
-	-webkit-background-clip: text;
-	-webkit-text-fill-color: transparent;
-	background-clip: text;
-}
+  .hero-content {
+    max-width: 800px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 2;
+  }
 
-.emoji {
-	font-size: 2.2rem;
-	margin-right: 0.5rem;
-}
+  .hero h1 {
+    font-size: 3.5rem;
+    margin-bottom: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -1px;
+  }
 
-.upload-area {
-	background: var(--color-bg-1);
-	padding: 2rem;
-	border-radius: var(--border-radius);
-	border: 2px dashed var(--border-color);
-	margin-bottom: 2rem;
-	text-align: center;
-	transition: all 0.3s ease;
-}
+  .hero p {
+    font-size: 1.4rem;
+    max-width: 600px;
+    margin: 0 auto 2.5rem;
+    line-height: 1.6;
+    opacity: 0.95;
+  }
 
-.upload-area:hover {
-	border-color: var(--color-primary);
-	background: var(--color-bg-2);
-}
+  .emoji {
+    font-size: 3rem;
+    vertical-align: middle;
+    margin-right: 0.5rem;
+  }
 
-.file-label {
-	display: inline-flex;
-	align-items: center;
-	gap: 0.75rem;
-	background: var(--color-surface);
-	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius-sm);
-	padding: 0.75rem 1.5rem;
-	cursor: pointer;
-	font-weight: 500;
-	color: var(--color-text);
-	transition: all 0.2s ease;
-	margin-bottom: 1rem;
-	box-shadow: var(--shadow-sm);
-}
+  .cta-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 1.5rem;
+  }
 
-.file-label:hover {
-	border-color: var(--color-primary);
-	box-shadow: var(--shadow-md);
-}
+  .cta-button {
+    background: white;
+    color: #6366f1;
+    border: none;
+    padding: 1rem 2.5rem;
+    border-radius: var(--border-radius);
+    font-weight: 600;
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-lg);
+    display: inline-block;
+    letter-spacing: 0.5px;
+  }
 
-.file-label input[type="file"] {
-	display: none;
-}
+  .cta-button.large {
+    padding: 1.2rem 3rem;
+    font-size: 1.2rem;
+  }
 
-.ai-info {
-	background: var(--color-surface-elevated);
-	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius);
-	padding: 1.5rem;
-	margin: 1.5rem 0;
-	box-shadow: var(--shadow-sm);
-}
+  .cta-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  }
 
-.ai-info h2 {
-	color: var(--color-text);
-	font-size: 1.25rem;
-	margin-bottom: 1rem;
-	font-weight: 600;
-}
+  .secondary-button {
+    background: transparent;
+    color: white;
+    border: 2px solid white;
+    padding: 1rem 2.5rem;
+    border-radius: var(--border-radius);
+    font-weight: 600;
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-block;
+    letter-spacing: 0.5px;
+  }
 
-.thinking-box {
-	background: var(--color-bg-1);
-	border-radius: var(--border-radius-sm);
-	padding: 1rem;
-	font-family: var(--font-mono);
-	color: var(--color-text-secondary);
-	font-size: 1.05rem;
-	line-height: 1.7;
-	border-left: 4px solid var(--color-primary);
-	margin-top: 0.5rem;
-}
+  .secondary-button:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-3px);
+  }
 
-.coords-row, .city-country-row {
-	display: flex;
-	gap: 1.5rem;
-	margin-top: 1rem;
-	flex-wrap: wrap;
-}
+  section {
+    padding: 6rem 2rem;
+  }
 
-.coords-row span, .city-country-row span {
-	background: var(--color-bg-1);
-	padding: 0.5rem 1rem;
-	border-radius: var(--border-radius-sm);
-	font-weight: 500;
-	font-size: 0.875rem;
-	border: 1px solid var(--border-color);
-}
+  .how-it-works {
+    background: var(--color-bg-1);
+    text-align: center;
+  }
 
-.xml-output {
-	background: #1e293b;
-	color: #e2e8f0;
-	border-radius: var(--border-radius);
-	margin: 1.5rem 0;
-	padding: 1rem;
-	font-family: var(--font-mono);
-	font-size: 0.875rem;
-	box-shadow: var(--shadow-md);
-}
+  .how-it-works h2 {
+    font-size: 2.5rem;
+    margin-bottom: 3.5rem;
+    color: var(--color-text);
+    font-weight: 700;
+    position: relative;
+  }
 
-.xml-output .title {
-	color: #fbbf24;
-	font-weight: 600;
-	margin-bottom: 0.5rem;
-}
+  .how-it-works h2:after {
+    content: '';
+    display: block;
+    width: 100px;
+    height: 4px;
+    background: var(--color-primary);
+    margin: 1.2rem auto 0;
+    border-radius: 2px;
+  }
 
-.error {
-	color: white;
-	background: var(--color-danger);
-	padding: 1rem;
-	border-radius: var(--border-radius-sm);
-	margin: 1.5rem 0;
-	font-weight: 500;
-	text-align: center;
-	box-shadow: var(--shadow-md);
-}
+  .steps {
+    display: flex;
+    gap: 2.5rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
 
-.result {
-	background: var(--color-surface-elevated);
-	padding: 2rem;
-	border-radius: var(--border-radius);
-	box-shadow: var(--shadow-md);
-	margin-top: 2rem;
-	text-align: center;
-	border: 1px solid var(--border-color);
-}
+  .step {
+    flex: 1;
+    min-width: 300px;
+    background: var(--color-surface);
+    padding: 2.5rem 2rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-md);
+    transition: all 0.3s ease;
+  }
 
-.location {
-	font-size: 1.5rem;
-	color: var(--color-text);
-	margin-bottom: 0.5rem;
-	font-weight: 700;
-}
+  .step:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-xl);
+  }
 
-.coordinates {
-	color: var(--color-text-secondary);
-	font-family: var(--font-mono);
-	margin-bottom: 1.5rem;
-	font-size: 0.875rem;
-}
+  .step-number {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--color-primary);
+    margin-bottom: 1.5rem;
+  }
 
-.satellite-view {
-	margin-top: 1.5rem;
-	text-align: center;
-}
+  .step h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: var(--color-text);
+  }
 
-.satellite-image {
-	max-width: 100%;
-	border-radius: var(--border-radius);
-	box-shadow: var(--shadow-lg);
-	border: 1px solid var(--border-color);
-}
+  .step p {
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+  }
+
+  .features {
+    background: var(--color-surface);
+    text-align: center;
+  }
+
+  .features h2 {
+    font-size: 2.5rem;
+    margin-bottom: 3.5rem;
+    color: var(--color-text);
+    font-weight: 700;
+  }
+
+  .tech-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2.5rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .tech-card {
+    background: var(--color-bg-1);
+    padding: 2.5rem;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+  }
+
+  .tech-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .tech-icon {
+    font-size: 3.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .tech-card h3 {
+    font-size: 1.6rem;
+    margin-bottom: 1rem;
+    color: var(--color-text);
+  }
+
+  .tech-card p {
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+  }
+
+  .call-to-action {
+    background: var(--color-primary);
+    color: white;
+    text-align: center;
+    padding: 6rem 2rem;
+  }
+
+  .call-to-action h2 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .call-to-action p {
+    font-size: 1.2rem;
+    max-width: 600px;
+    margin: 0 auto 2.5rem;
+    opacity: 0.9;
+  }
+
+  @media (max-width: 768px) {
+    .hero {
+      padding: 4rem 1.5rem 6rem;
+    }
+    
+    .hero h1 {
+      font-size: 2.5rem;
+    }
+    
+    .hero p {
+      font-size: 1.2rem;
+    }
+    
+    .cta-buttons {
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .step {
+      min-width: 100%;
+    }
+  }
 </style>
