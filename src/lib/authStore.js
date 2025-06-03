@@ -12,13 +12,14 @@ export const auth = writable(null);
 account.get().then(user => auth.set(user)).catch(() => auth.set(null));
 
 export const login = async (email, password) => {
-  await account.createEmailSession(email, password);
+  await account.createEmailPasswordSession(email, password);
   auth.set(await account.get());
 };
 
 export const register = async (email, password, name) => {
-  await account.create('unique()', email, password, name);
-  await login(email, password);
+  const user = await account.create('unique()', email, password, name);
+  await account.createEmailPasswordSession(email, password);
+  auth.set(user);
 };
 
 export const logout = async () => {
