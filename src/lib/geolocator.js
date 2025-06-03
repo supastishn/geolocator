@@ -56,12 +56,12 @@ export async function getLocation(imageData, onStreamChunk = null, mapUrl = null
     if (!response.ok) {
       let err = 'Failed to get location (Gemini)';
       try {
-        const data = await response.json();
+        const data = response.json;
         err = data.error || err;
       } catch {}
       throw new Error(err);
     }
-    const data = await response.json();
+    const data = response.json; // Use directly parsed JSON object
     // Try to extract the XML content from Gemini's response
     let content = '';
     // Try to find the XML in the response (OpenAI format: choices[0].message.content)
@@ -211,6 +211,6 @@ async function callGeminiFunction(base64Image) {
 
   return {
     ok: execution.status === 'completed',
-    json: async () => JSON.parse(execution.response)
+    json: JSON.parse(execution.response) // Return parsed object directly
   };
 }
