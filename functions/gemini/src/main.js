@@ -1,6 +1,4 @@
-import fetch from 'node-fetch';
-
-// New system prompt for Gemini
+ // New system prompt for Gemini
 const SYSTEM_PROMPT = `
 You are an expert geolocation AI. 
 Identify locations using satellite imagery. Respond in EXACTLY this format:

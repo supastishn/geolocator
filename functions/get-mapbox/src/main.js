@@ -1,5 +1,3 @@
-import fetch from 'node-fetch';
-
 export default async ({ req, res, log, error }) => {
   const apiKey = process.env.MAPBOX_TOKEN;
   const baseUrl = 'https://api.mapbox.com/styles/v1/mapbox/satellite-v9/static';
