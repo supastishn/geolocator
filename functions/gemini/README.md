@@ -1,4 +1,4 @@
-# gemini
+# gemini (Requires login)
 
 ## 🧰 Usage
 

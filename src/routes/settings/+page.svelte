@@ -101,7 +101,8 @@ label {
 }
 
 .centered-input {
-	width: 100%;
+	/* Remove fixed width constraint */
+	max-width: 100%; /* Add this to make responsive */
 	margin-top: 0.5rem;
 	padding: 0.5rem 0.75rem;
 	border: 1px solid var(--border-color);
@@ -131,10 +132,11 @@ label {
 	color: white;
 	border-radius: var(--border-radius-sm);
 	padding: 0.75rem 1.5rem;
-	display: inline-block;
+	display: block; /* Change from inline-block */
+	text-align: center;
+	margin: 1rem auto; /* Center horizontally */
 	font-weight: 500;
 	font-size: 0.875rem;
-	margin-top: 1rem;
 	box-shadow: var(--shadow-md);
 	animation: slideIn 0.3s ease;
 }
