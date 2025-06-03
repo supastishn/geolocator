@@ -48,83 +48,140 @@ function buildMessage(imageData, mapUrl, isIterate = false) {
  */
 export async function getLocation(imageData, onStreamChunk = null, mapUrl = null) {
   const settingsValue = get(settings);
-  const messages = [{
-    role: "system",
-    content: SYSTEM_PROMPT
-  }, {
-    role: "user",
-    content: buildMessage(imageData, mapUrl, !!mapUrl)
-  }];
 
-  // Use OpenAI streaming API
-  const response = await fetch(`${settingsValue.baseUrl}/chat/completions`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${settingsValue.apiKey}`
-    },
-    body: JSON.stringify({
-      model: settingsValue.model,
-      messages,
-      max_tokens: 1000,
-      stream: true
-    })
-  });
+  if (settingsValue.provider === 'gemini') {
+    // Handle Gemini function call
+    const response = await callGeminiFunction(imageData);
+    if (!response.ok) {
+      let err = 'Failed to get location (Gemini)';
+      try {
+        const data = await response.json();
+        err = data.error || err;
+      } catch {}
+      throw new Error(err);
+    }
+    const data = await response.json();
+    // Try to extract the XML content from Gemini's response
+    let content = '';
+    // Try to find the XML in the response (OpenAI format: choices[0].message.content)
+    if (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) {
+      content = data.choices[0].message.content;
+      if (onStreamChunk) onStreamChunk(content);
+    } else if (typeof data === 'string') {
+      content = data;
+      if (onStreamChunk) onStreamChunk(content);
+    } else {
+      throw new Error('Unexpected Gemini function response');
+    }
 
-  if (!response.ok) {
-    let err = 'Failed to get location';
-    try {
-      const data = await response.json();
-      err = data.error?.message || err;
-    } catch {}
-    throw new Error(err);
-  }
+    // Parse the content as XML
+    const parser = new DOMParser();
+    const wrappedContent = `<root>${content}</root>`;
+    const xmlDoc = parser.parseFromString(wrappedContent, "text/xml");
 
-  // Stream the response
-  let content = '';
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder('utf-8');
-  let done = false;
-  while (!done) {
-    const { value, done: doneReading } = await reader.read();
-    done = doneReading;
-    if (value) {
-      const chunk = decoder.decode(value, { stream: true });
-      // OpenAI streams as "data: ..." lines
-      for (const line of chunk.split('\n')) {
-        if (line.startsWith('data: ')) {
-          const dataStr = line.replace('data: ', '').trim();
-          if (dataStr === '[DONE]') continue;
-          try {
-            const data = JSON.parse(dataStr);
-            const delta = data.choices?.[0]?.delta?.content;
-            if (delta) {
-              content += delta;
-              if (onStreamChunk) onStreamChunk(content);
-            }
-          } catch {}
+    if (xmlDoc.querySelector('answer')) {
+      return {
+        city: xmlDoc.querySelector('city')?.textContent || 'Unknown',
+        country: xmlDoc.querySelector('country')?.textContent || 'Unknown',
+        latitude: xmlDoc.querySelector('latitude')?.textContent || '0',
+        longitude: xmlDoc.querySelector('longitude')?.textContent || '0'
+      };
+    }
+    return null;
+  } else {
+    // Existing OpenAI API call
+    const messages = [{
+      role: "system",
+      content: SYSTEM_PROMPT
+    }, {
+      role: "user",
+      content: buildMessage(imageData, mapUrl, !!mapUrl)
+    }];
+
+    // Use OpenAI streaming API
+    const response = await fetch(`${settingsValue.baseUrl}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${settingsValue.apiKey}`
+      },
+      body: JSON.stringify({
+        model: settingsValue.model,
+        messages,
+        max_tokens: 1000,
+        stream: true
+      })
+    });
+
+    if (!response.ok) {
+      let err = 'Failed to get location';
+      try {
+        const data = await response.json();
+        err = data.error?.message || err;
+      } catch {}
+      throw new Error(err);
+    }
+
+    // Stream the response
+    let content = '';
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder('utf-8');
+    let done = false;
+    while (!done) {
+      const { value, done: doneReading } = await reader.read();
+      done = doneReading;
+      if (value) {
+        const chunk = decoder.decode(value, { stream: true });
+        // OpenAI streams as "data: ..." lines
+        for (const line of chunk.split('\n')) {
+          if (line.startsWith('data: ')) {
+            const dataStr = line.replace('data: ', '').trim();
+            if (dataStr === '[DONE]') continue;
+            try {
+              const data = JSON.parse(dataStr);
+              const delta = data.choices?.[0]?.delta?.content;
+              if (delta) {
+                content += delta;
+                if (onStreamChunk) onStreamChunk(content);
+              }
+            } catch {}
+          }
         }
       }
     }
+
+    // Parse the streamed content as XML
+    const parser = new DOMParser();
+    const wrappedContent = `<root>${content}</root>`;
+    const xmlDoc = parser.parseFromString(wrappedContent, "text/xml");
+
+    if (xmlDoc.querySelector('answer')) {
+      return {
+        city: xmlDoc.querySelector('city')?.textContent || 'Unknown',
+        country: xmlDoc.querySelector('country')?.textContent || 'Unknown',
+        latitude: xmlDoc.querySelector('latitude')?.textContent || '0',
+        longitude: xmlDoc.querySelector('longitude')?.textContent || '0'
+      };
+    }
+
+    return null;
   }
-
-  // Parse the streamed content as XML
-  const parser = new DOMParser();
-  const wrappedContent = `<root>${content}</root>`;
-  const xmlDoc = parser.parseFromString(wrappedContent, "text/xml");
-
-  if (xmlDoc.querySelector('answer')) {
-    return {
-      city: xmlDoc.querySelector('city')?.textContent || 'Unknown',
-      country: xmlDoc.querySelector('country')?.textContent || 'Unknown',
-      latitude: xmlDoc.querySelector('latitude')?.textContent || '0',
-      longitude: xmlDoc.querySelector('longitude')?.textContent || '0'
-    };
-  }
-
-  return null;
 }
 
 function getSatelliteImage(lat, lon) {
   return `https://fra.cloud.appwrite.io/v1/functions/get-mapbox/executions?lat=${lat}&lon=${lon}&zoom=15&width=800&height=600`;
+}
+
+// Gemini function call helper
+function callGeminiFunction(base64Image) {
+  // Remove data URL prefix if exists
+  const base64Data = base64Image.startsWith('data:')
+    ? base64Image.split(',')[1]
+    : base64Image;
+
+  return fetch('https://fra.cloud.appwrite.io/v1/functions/gemini/executions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ image: base64Data })
+  });
 }

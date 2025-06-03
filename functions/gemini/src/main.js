@@ -1,5 +1,19 @@
 import fetch from 'node-fetch';
 
+const SYSTEM_PROMPT = `
+You are an expert geolocation AI. Your task is to identify locations using satellite imagery.
+Respond EXCLUSIVELY using these XML tags: 
+<thinking>[Reasoning]</thinking>
+<satellite>
+  <latitude>[Decimal]</latitude>
+  <longitude>[Decimal]</longitude>
+</satellite>
+<answer>
+  <city>[City]</city>
+  <country>[Country]</country>
+</answer>
+`.trim();
+
 export default async ({ req, res, log, error }) => {
   // Handle /ping for health check
   if (req.path === "/ping") {
@@ -34,6 +48,10 @@ export default async ({ req, res, log, error }) => {
         model: process.env.OPENAI_MODEL || 'gpt-4-vision-preview',
         max_tokens: 1000,
         messages: [
+          {
+            role: "system",
+            content: SYSTEM_PROMPT
+          },
           {
             role: "user",
             content: [

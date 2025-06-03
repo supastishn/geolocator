@@ -1,6 +1,7 @@
 <script>
   import { settings } from '$lib/stores.js';
-
+  
+  let provider = $settings.provider;
   let apiKey = $settings.apiKey;
   let baseUrl = $settings.baseUrl;
   let model = $settings.model;
@@ -8,7 +9,7 @@
   let saveTimeout;
 
   const saveSettings = () => {
-    $settings = { apiKey, baseUrl, model };
+    $settings = { provider, apiKey, baseUrl, model };
     saved = true;
     clearTimeout(saveTimeout);
     saveTimeout = setTimeout(() => {
@@ -20,26 +21,42 @@
 <div class="settings-container">
   <h2>API Settings</h2>
   
-  <label>
-    OpenAI API Key:
-    <input type="password" bind:value={apiKey} class="centered-input" />
-  </label>
-  
-  <label>
-    Base URL:
-    <input type="text" bind:value={baseUrl} 
-           placeholder="https://api.openai.com/v1"
-           class="centered-input" />
-  </label>
-  
-  <label>
-    Model:
-    <input type="text" bind:value={model} 
-           placeholder="gpt-4-vision-preview"
-           class="centered-input" />
-  </label>
+  <!-- Add provider selection -->
+  <div class="provider-selection">
+    <label>
+      <input type="radio" name="provider" bind:group={provider} value="openai" />
+      OpenAI (Bring Your Own Key)
+    </label>
+    <label>
+      <input type="radio" name="provider" bind:group={provider} value="gemini" />
+      Gemini Function
+    </label>
+  </div>
 
-  
+  <!-- Conditionally show API fields -->
+  {#if provider === 'openai'}
+    <label>
+      OpenAI API Key:
+      <input type="password" bind:value={apiKey} class="centered-input" />
+    </label>
+    
+    <label>
+      Base URL:
+      <input type="text" bind:value={baseUrl} 
+             placeholder="https://api.openai.com/v1"
+             class="centered-input" />
+    </label>
+    
+    <label>
+      Model:
+      <input type="text" bind:value={model} 
+             placeholder="gpt-4-vision-preview"
+             class="centered-input" />
+    </label>
+  {:else}
+    <p class="info-note">Using Apprite Gemini function - no configuration needed</p>
+  {/if}
+
   <div class="button-row">
     <button on:click={saveSettings}>Save Settings</button>
   </div>
@@ -116,6 +133,29 @@ label {
 	margin-top: 1rem;
 	box-shadow: var(--shadow-md);
 	animation: slideIn 0.3s ease;
+}
+
+.provider-selection {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 2rem;
+  justify-content: center;
+}
+
+.provider-selection label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.info-note {
+  text-align: center;
+  padding: 1rem;
+  background-color: var(--color-bg-1);
+  border-radius: var(--border-radius-sm);
+  margin: 1.5rem 0;
 }
 
 @keyframes slideIn {
