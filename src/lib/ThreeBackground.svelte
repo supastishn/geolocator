@@ -1,12 +1,24 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
   import * as THREE from 'three';
+  import { theme } from '$lib/stores';
 
   let container;
   let renderer, scene, camera, animationId;
   let particles = [];
+  let themeUnsubscribe;
+  let currentTheme = 'light';
 
   onMount(() => {
+    // Set initial theme
+    currentTheme = $theme || 'light';
+
+    // Subscribe to theme changes
+    themeUnsubscribe = theme.subscribe(value => {
+      currentTheme = value;
+      updateParticleMaterials();
+    });
+
     // Scene setup
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -17,21 +29,21 @@
     container.appendChild(renderer.domElement);
 
     // Particle parameters
-    const particleCount = 300; // Increased to 300
-    const geometry = new THREE.BoxGeometry(1, 1, 1);
-    const particleColor = 0xffffff;
-    const scale = 2; // base scale, will be doubled
+    const particleCount = 300;
+    const geometry = new THREE.SphereGeometry(1, 16, 16);
+    const particleColor = currentTheme === 'dark' ? 0xffffff : 0x000000;
 
     for (let i = 0; i < particleCount; i++) {
       const material = new THREE.MeshBasicMaterial({
         color: particleColor,
         transparent: true,
-        opacity: 0.7, // Set card opacity to 0.7
+        opacity: 0.7,
         side: THREE.DoubleSide
       });
 
-      // Double the scale
-      const scaleFactor = Math.random() * (scale * 2) + scale;
+      // Halve the scale
+      const scaleFactor = Math.random() * 1 + 0.5;
+
       const particle = new THREE.Mesh(geometry.clone(), material);
       particle.position.set(
         (Math.random() - 0.5) * 200,
@@ -39,15 +51,31 @@
         (Math.random() - 0.5) * 200
       );
       particle.scale.set(scaleFactor, scaleFactor, scaleFactor);
+
+      // Add velocity for random movement
+      particle.userData.velocity = new THREE.Vector3(
+        (Math.random() - 0.5) * 0.1,
+        (Math.random() - 0.5) * 0.1,
+        (Math.random() - 0.5) * 0.1
+      );
+
       scene.add(particle);
       particles.push(particle);
     }
 
     function animate() {
       animationId = requestAnimationFrame(animate);
-      particles.forEach((p, i) => {
-        p.rotation.x += 0.002 + i * 0.00001;
-        p.rotation.y += 0.003 + i * 0.00001;
+      particles.forEach((p) => {
+        // Random movement
+        p.position.add(p.userData.velocity);
+
+        // Boundary check - wrap around
+        if (p.position.x > 100) p.position.x = -100;
+        if (p.position.x < -100) p.position.x = 100;
+        if (p.position.y > 100) p.position.y = -100;
+        if (p.position.y < -100) p.position.y = 100;
+        if (p.position.z > 100) p.position.z = -100;
+        if (p.position.z < -100) p.position.z = 100;
       });
       renderer.render(scene, camera);
     }
@@ -59,13 +87,21 @@
       renderer.setSize(window.innerWidth, window.innerHeight);
     }
     window.addEventListener('resize', handleResize);
+  });
 
-    onDestroy(() => {
-      cancelAnimationFrame(animationId);
-      window.removeEventListener('resize', handleResize);
-      renderer.dispose();
-      particles = [];
+  function updateParticleMaterials() {
+    const newColor = currentTheme === 'dark' ? 0xffffff : 0x000000;
+    particles.forEach(p => {
+      p.material.color.setHex(newColor);
     });
+  }
+
+  onDestroy(() => {
+    cancelAnimationFrame(animationId);
+    window.removeEventListener('resize', handleResize);
+    renderer.dispose();
+    particles = [];
+    if (themeUnsubscribe) themeUnsubscribe();
   });
 </script>
 
