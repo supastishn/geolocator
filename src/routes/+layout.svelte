@@ -1,5 +1,6 @@
 <script>
 	import Header from './Header.svelte';
+	import ThreeBackground from '$lib/ThreeBackground.svelte';
 	import '../app.css';
 	import { theme } from '$lib/stores';
 	import { browser } from '$app/environment';
@@ -12,6 +13,7 @@
 </script>
 
 <div class="app">
+	<ThreeBackground />
 	<Header />
 
 	<main>

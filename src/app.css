@@ -225,3 +225,9 @@ main {
 	width: 1px;
 	white-space: nowrap;
 }
+
+/* Three.js background layering fix */
+main, header {
+	position: relative;
+	z-index: 1;
+}
