@@ -2,6 +2,7 @@
   import { onMount, onDestroy } from 'svelte';
   import * as THREE from 'three';
   import { theme } from '$lib/stores';
+  import { browser } from '$app/environment'; // Add this import
 
   let container;
   let renderer, scene, camera, animationId;
@@ -10,6 +11,8 @@
   let currentTheme = 'light';
 
   onMount(() => {
+    if (!browser) return; // Skip in SSR
+
     // Set initial theme
     currentTheme = $theme || 'light';
 
@@ -97,6 +100,7 @@
   }
 
   onDestroy(() => {
+    if (!browser) return; // Skip in SSR
     cancelAnimationFrame(animationId);
     window.removeEventListener('resize', handleResize);
     renderer.dispose();
