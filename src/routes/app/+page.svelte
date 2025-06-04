@@ -269,8 +269,13 @@
 </main>
 
 <style>
+.container, .upload-area, .ai-info, .result {
+	background: rgba(var(--color-surface-rgb), 0.7);
+}
+.satellite-view {
+	background: transparent;
+}
 .container {
-	background: var(--color-surface);
 	max-width: 800px;
 	margin: 2rem auto;
 	padding: 2rem;

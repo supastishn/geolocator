@@ -45,7 +45,7 @@
       });
 
       // Halve the scale
-      const scaleFactor = Math.random() * 1 + 0.5;
+      const scaleFactor = (Math.random() * 1 + 0.5) / 3; // Divided by 3 to make 3x smaller
 
       const particle = new THREE.Mesh(geometry.clone(), material);
       particle.position.set(

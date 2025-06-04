@@ -91,7 +91,7 @@
 	max-width: 600px;
 	margin: 2rem auto;
 	padding: 2rem;
-	background: var(--color-surface);
+	background: rgba(var(--color-surface-rgb), 0.7);
 	border-radius: var(--border-radius);
 	box-shadow: var(--shadow-lg);
 	border: 1px solid var(--border-color);

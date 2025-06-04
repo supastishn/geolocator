@@ -209,7 +209,7 @@
   .step {
     flex: 1;
     min-width: 300px;
-    background: var(--color-surface);
+    background: rgba(var(--color-surface-rgb), 0.7);
     padding: 2.5rem 2rem;
     border-radius: var(--border-radius);
     box-shadow: var(--shadow-md);
@@ -260,7 +260,7 @@
   }
 
   .tech-card {
-    background: var(--color-bg-1);
+    background: rgba(var(--color-bg-1-rgb), 0.7);
     padding: 2.5rem;
     border-radius: var(--border-radius);
     border: 1px solid var(--border-color);
@@ -329,4 +329,12 @@
       min-width: 100%;
     }
   }
+:global(:root) {
+  --color-surface-rgb: 255, 255, 255;
+  --color-bg-1-rgb: 248, 250, 252;
+}
+:global([data-theme="dark"]) {
+  --color-surface-rgb: 30, 41, 59;
+  --color-bg-1-rgb: 15, 23, 42;
+}
 </style>
