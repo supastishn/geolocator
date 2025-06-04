@@ -10,32 +10,31 @@
 </script>
 
 <header>
-  <nav>
-    <div class="nav-content">
-      <div class="nav-left">
-        <a class="logo" href="{base}/">
-          <img src="{base}/favicon.png" alt="Geobot" class="logo-img" />
-        </a>
+  <div class="container">
+    <nav>
+      <a href="/" class="logo">
+        <img src="./favicon.png" alt="GeoLocator Logo" />
+        <span>GeoLocator</span>
+      </a>
+      <div class="nav-links">
+        <ul>
+          <li aria-current={$page.url.pathname === `${base}/` ? 'page' : undefined}>
+            <a href="{base}/">Home</a>
+          </li>
+          <li aria-current={$page.url.pathname === `${base}/app` ? 'page' : undefined}>
+            <a href="{base}/app">App</a>
+          </li>
+          <li aria-current={$page.url.pathname === `${base}/settings` ? 'page' : undefined}>
+            <a href="{base}/settings">Settings</a>
+          </li>
+        </ul>
       </div>
-      <ul class="nav-links nav-links-center">
-        <li aria-current={$page.url.pathname === `${base}/` ? 'page' : undefined}>
-          <a href="{base}/">Home</a>
-        </li>
-        <li aria-current={$page.url.pathname === `${base}/app` ? 'page' : undefined}>
-          <a href="{base}/app">App</a>
-        </li>
-        <li aria-current={$page.url.pathname === `${base}/settings` ? 'page' : undefined}>
-          <a href="{base}/settings">Settings</a>
-        </li>
-      </ul>
-      <!-- Theme toggle container -->
       <div class="theme-container">
         <button on:click={toggleTheme} class="theme-toggle">
           {$theme === 'light' ? '🌙' : '☀️'}
         </button>
       </div>
-      <!-- Auth container -->
-      <div class="auth-container">
+      <div class="user-section">
         {#if $auth}
           <span class="user-email">{$auth.email}</span>
           <button on:click={() => logout()} class="auth-button logout">Logout</button>
@@ -44,126 +43,123 @@
           <a href="{base}/register" class="auth-button register">Register</a>
         {/if}
       </div>
-    </div>
-  </nav>
+    </nav>
+  </div>
 </header>
 
 <style>
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
 header {
-	backdrop-filter: blur(16px);
-	background: var(--color-secondary);
-	border-bottom: 1px solid var(--border-color);
-	position: sticky;
-	top: 0;
-	z-index: 50;
-	transition: all 0.3s ease;
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(12px);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  border-bottom: 1px solid var(--border-color);
+  transition: all 0.3s;
 }
 
 [data-theme="dark"] header {
-	background: var(--color-secondary);
-	border-bottom: 1px solid #0f172a;
+  background: rgba(30,41,59,0.85);
+  border-bottom: 1px solid #0f172a;
 }
 
-.nav-content {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	max-width: 1200px;
-	margin: 0 auto;
-	height: 4rem;
-	padding: 0 1.5rem;
-	gap: 1rem;
+nav {
+  display: flex;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  gap: 1.5rem;
 }
 
-/* Add styles for new direct containers */
-.theme-container, .auth-container {
-	display: flex;
-	align-items: center;
-	gap: 0.75rem;
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 700;
+  font-size: 1.2rem;
+  text-decoration: none;
+  color: var(--color-primary);
 }
 
-.user-email {
-	padding: 0 0.5rem;
+.logo img {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
 }
 
-.nav-left {
-	width: 60px;
+.nav-links ul {
+  display: flex;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  gap: 0.5rem;
 }
 
-.logo-img {
-	height: 32px;
-	width: auto;
-	border-radius: 6px;
+.nav-links a {
+  color: var(--color-text);
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: var(--border-radius-sm);
+  font-weight: 500;
+  font-size: 0.95rem;
+  transition: all 0.2s;
+  position: relative;
 }
 
-.nav-links {
-	display: flex;
-	list-style: none;
-	padding: 0;
-	margin: 0;
-	gap: 0.5rem;
+.nav-links a:hover, .nav-links a[aria-current] {
+  background: var(--color-primary);
+  color: #fff !important;
 }
 
-.nav-links-center {
-	flex-grow: 1;
-	justify-content: center;
-}
-
-nav a {
-	color: var(--color-text) !important;
-	text-decoration: none;
-	padding: 0.5rem 1rem;
-	border-radius: var(--border-radius-sm);
-	font-weight: 500;
-	font-size: 0.875rem;
-	transition: all 0.2s ease;
-	position: relative;
-}
-
-nav a:hover, nav a[aria-current] {
-	background: var(--color-secondary);
-	color: var(--color-primary) !important;
+.theme-container, .user-section {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .theme-toggle {
-  background: var(--color-secondary);
+  background: var(--color-surface-2);
   border: none;
   font-size: 1.25rem;
   cursor: pointer;
   padding: 0.5rem;
   border-radius: var(--border-radius-sm);
-  transition: all 0.2s ease;
+  transition: all 0.2s;
 }
 
 .theme-toggle:hover {
-  background: var(--border-color);
+  background: var(--color-primary);
+  color: #fff;
   transform: scale(1.05);
-}
-
-.nav-right {
-  min-width: 180px;
-  justify-content: flex-end;
 }
 
 .user-email {
   margin-right: 1rem;
-  font-size: 0.875rem;
+  font-size: 0.95rem;
   color: var(--color-text);
 }
 
 .auth-button {
-  transition: all 0.2s ease;
+  transition: all 0.2s;
   padding: 0.5rem 1rem;
-  background: var(--color-secondary);
+  background: var(--color-surface-2);
   border-radius: var(--border-radius-sm);
+  border: 1px solid var(--border-color);
+  font-weight: 500;
 }
 
 .auth-button:hover {
-  background: var(--border-color);
+  background: var(--color-primary);
+  color: #fff;
+  border-color: var(--color-primary);
 }
 
 .login {
-  background: var(--color-secondary);
+  background: var(--color-surface-2);
   color: var(--color-primary);
   border: 1px solid var(--color-primary);
 }
@@ -177,23 +173,23 @@ nav a:hover, nav a[aria-current] {
 .register {
   background: var(--color-primary);
   color: white;
-  box-shadow: 0 2px 4px rgba(99, 102, 241, 0.2);
+  box-shadow: 0 2px 4px rgba(67, 97, 238, 0.12);
 }
 
 .register:hover {
-  background: var(--color-primary-hover);
+  background: var(--color-accent);
   transform: translateY(-1px);
-  box-shadow: 0 4px 6px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 4px 6px rgba(114, 9, 183, 0.18);
 }
 
 .logout {
-  background: var(--color-secondary);
+  background: var(--color-surface-2);
   border: 1px solid var(--border-color);
   color: var(--color-text);
 }
 
 .logout:hover {
-  background: var(--color-primary);
+  background: var(--color-danger);
   color: white;
   border-color: transparent;
 }

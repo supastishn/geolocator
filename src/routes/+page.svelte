@@ -7,12 +7,14 @@
   <meta name="description" content="Identify locations using AI and satellite imagery" />
 </svelte:head>
 
+<!-- Enhanced hero section -->
 <div class="hero">
   <div class="hero-content">
     <h1>
-      <span class="emoji">🛰️</span> Identify Locations with AI
+      <span class="emoji">🌍</span> GeoLocator
+      <div class="gradient-text">AI-Powered Location Identification</div>
     </h1>
-    <p>Upload an image, and our AI will analyze it to determine the location using satellite imagery</p>
+    <p class="hero-subtitle">Upload any landscape photo and instantly identify its location using satellite imagery and advanced AI</p>
     <div class="cta-buttons">
       <a href="{base}/app" class="cta-button">Try It Now</a>
       <a href="#how-it-works" class="secondary-button">How It Works</a>
@@ -70,23 +72,12 @@
 
 <style>
   .hero {
-    background: linear-gradient(135deg, #6366f1, #10b981);
+    background: linear-gradient(130deg, #00467f, #4361ee);
     color: white;
     text-align: center;
-    padding: 6rem 2rem 8rem;
+    padding: 6rem 1rem 8rem;
     position: relative;
     overflow: hidden;
-  }
-
-  .hero:before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: url('{base}/static/black_circle_360x360.png') center/cover no-repeat;
-    opacity: 0.1;
   }
 
   .hero-content {
@@ -97,15 +88,25 @@
   }
 
   .hero h1 {
-    font-size: 3.5rem;
+    font-size: 3.2rem;
     margin-bottom: 1.5rem;
     font-weight: 800;
     letter-spacing: -1px;
   }
 
-  .hero p {
-    font-size: 1.4rem;
-    max-width: 600px;
+  .gradient-text {
+    background: linear-gradient(90deg, #08aeea, #b721ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-size: 4rem;
+    line-height: 1;
+    margin-top: 0.5rem;
+    font-weight: 800;
+  }
+
+  .hero-subtitle {
+    font-size: 1.5rem;
+    max-width: 42rem;
     margin: 0 auto 2.5rem;
     line-height: 1.6;
     opacity: 0.95;
@@ -126,7 +127,7 @@
 
   .cta-button {
     background: white;
-    color: #6366f1;
+    color: #4361ee;
     border: none;
     padding: 1rem 2.5rem;
     border-radius: var(--border-radius);
@@ -207,6 +208,8 @@
   }
 
   .step {
+    position: relative;
+    overflow: hidden;
     flex: 1;
     min-width: 300px;
     background: rgba(var(--color-surface-rgb), 0.7);
@@ -214,6 +217,16 @@
     border-radius: var(--border-radius);
     box-shadow: var(--shadow-md);
     transition: all 0.3s ease;
+  }
+
+  .step:after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
   }
 
   .step:hover {
@@ -253,18 +266,20 @@
 
   .tech-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
     max-width: 1200px;
     margin: 0 auto;
   }
 
   .tech-card {
-    background: rgba(var(--color-bg-1-rgb), 0.7);
-    padding: 2.5rem;
     border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+    background: var(--color-surface);
     border: 1px solid var(--border-color);
     transition: all 0.3s ease;
+    padding: 2.5rem;
   }
 
   .tech-card:hover {
