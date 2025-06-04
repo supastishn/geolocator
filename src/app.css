@@ -50,6 +50,15 @@
 	--color-secondary: #334155;
 }
 
+/* Light theme background image and fallback for no theme */
+[data-theme="light"] body, 
+body:not([data-theme]) {
+	background-image: 
+		linear-gradient(rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.7)),
+		url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%239C92AC' fill-opacity='0.08' fill-rule='evenodd'%3E%3Cpath d='M0 40L40 0H20L0 20M40 40V20L20 40'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* Dark theme background image */
 [data-theme="dark"] body {
 	background-image: 
 		linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.85)),
@@ -64,13 +73,14 @@ body[data-theme="dark"] nav a {
 	color: var(--text-dark);
 }
 
+/* Shared body properties */
 body {
 	min-height: 100vh;
 	margin: 0;
-	background-image: 
-		linear-gradient(rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.7)),
-		url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%239C92AC' fill-opacity='0.08' fill-rule='evenodd'%3E%3Cpath d='M0 40L40 0H20L0 20M40 40V20L20 40'/%3E%3C/g%3E%3C/svg%3E");
+	background-color: var(--color-bg-1);
 	background-attachment: fixed;
+	background-repeat: repeat;
+	background-position: center;
 	transition: background-color 0.3s ease, color 0.3s ease;
 	/* Add common font styling */
 	font-family: var(--font-body);
