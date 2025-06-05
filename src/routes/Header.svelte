@@ -198,6 +198,11 @@ nav {
   color: var(--color-text);
 }
 
+[data-theme="dark"] .logout {
+  background: #1e293b;
+  border-color: #334155;
+}
+
 .logout:hover {
   background: var(--color-danger);
   color: white;

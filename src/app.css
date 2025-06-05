@@ -17,6 +17,9 @@
   --color-surface-2: #f8fafc; 
   --color-surface-dark: #1e293b;
 
+  --color-surface-rgb: 255, 255, 255;
+  --color-bg-1: #f8fafc;
+
   --border-color: #e2e8f0;
   --border-radius: 12px;
   --border-radius-sm: 8px;
@@ -33,6 +36,8 @@
   --color-surface-2: #1e293b;
   --border-color: #334155;
   --shadow-sm: 0 1px 3px rgba(0,0,0,0.2);
+  --color-surface-rgb: 30, 41, 59;
+  --color-bg-1: #0f172a;
 }
 
 /* Smooth transitions */

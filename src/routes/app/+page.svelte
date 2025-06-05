@@ -321,6 +321,11 @@
   box-shadow: var(--shadow-sm);
 }
 
+.file-label:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+}
+
 .file-label:hover {
   border-color: var(--color-primary);
   box-shadow: var(--shadow-md);
@@ -383,6 +388,10 @@
   font-family: var(--font-mono);
   font-size: 0.875rem;
   box-shadow: var(--shadow-md);
+}
+
+[data-theme="light"] .xml-output {
+  background: #2d3748;
 }
 
 .xml-output .title {
