@@ -29,19 +29,21 @@
           </li>
         </ul>
       </div>
-      <div class="theme-container">
-        <button on:click={toggleTheme} class="theme-toggle">
-          {$theme === 'light' ? '🌙' : '☀️'}
-        </button>
-      </div>
-      <div class="user-section">
-        {#if $auth}
-          <span class="user-email">{$auth.email}</span>
-          <button on:click={() => logout()} class="auth-button logout">Logout</button>
-        {:else}
-          <a href="{base}/login" class="auth-button login">Login</a>
-          <a href="{base}/register" class="auth-button register">Register</a>
-        {/if}
+      <div class="right-aligned-container">
+        <div class="theme-container">
+          <button on:click={toggleTheme} class="theme-toggle">
+            {$theme === 'light' ? '🌙' : '☀️'}
+          </button>
+        </div>
+        <div class="user-section">
+          {#if $auth}
+            <span class="user-email">{$auth.email}</span>
+            <button on:click={() => logout()} class="auth-button logout">Logout</button>
+          {:else}
+            <a href="{base}/login" class="auth-button login">Login</a>
+            <a href="{base}/register" class="auth-button register">Register</a>
+          {/if}
+        </div>
       </div>
     </nav>
   </div>
@@ -73,6 +75,7 @@ nav {
   align-items: center;
   padding: 1rem 1.5rem;
   gap: 1.5rem;
+  justify-content: space-between;
 }
 
 .logo {
@@ -119,6 +122,13 @@ nav {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+}
+
+.right-aligned-container {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  gap: 1.5rem;
 }
 
 .theme-toggle {
