@@ -66,6 +66,7 @@
     width: 100%;
     max-width: 400px;
     border: 1px solid var(--border-color);
+    color: var(--color-text);
   }
 
   .auth-card h2 {

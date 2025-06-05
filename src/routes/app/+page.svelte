@@ -288,6 +288,7 @@
   border: 1px solid var(--border-color);
   margin-bottom: 2rem;
   padding: 2rem;
+  color: var(--color-text);
 }
 
 .upload-area {
@@ -345,7 +346,7 @@
 }
 
 .ai-info h2 {
-  color: var(--color-primary);
+  color: var(--color-text);
   font-size: 1.25rem;
   margin-bottom: 1rem;
   font-weight: 600;
@@ -377,6 +378,7 @@
   font-weight: 500;
   font-size: 0.875rem;
   border: 1px solid var(--border-color);
+  color: var(--color-text);
 }
 
 .xml-output {
@@ -421,6 +423,12 @@
   margin-top: 2rem;
   text-align: center;
   border: 1px solid var(--border-color);
+}
+
+.result-card h2,
+.result-card .location,
+.result-card .coordinates {
+  color: var(--color-text);
 }
 
 .location {

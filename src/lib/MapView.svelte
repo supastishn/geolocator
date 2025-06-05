@@ -43,4 +43,8 @@
     border-radius: 4px;
     z-index: 0;
   }
+
+  .map-container :global(.leaflet-popup-content) {
+    color: var(--color-text) !important;
+  }
 </style>

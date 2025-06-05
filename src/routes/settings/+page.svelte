@@ -96,6 +96,7 @@
 	box-shadow: var(--shadow-lg);
 	border: 1px solid var(--border-color);
 	font-size: 1.2rem;
+	color: var(--color-text);
 }
 
 .settings-container label {
@@ -194,5 +195,9 @@ label {
 
 .theme-aware {
   color: var(--color-text);
+}
+
+.centered-input::placeholder {
+  color: var(--color-text-secondary);
 }
 </style>

@@ -313,6 +313,7 @@
   .call-to-action h2 {
     font-size: 2.5rem;
     margin-bottom: 1rem;
+    color: var(--color-text);
   }
 
   .call-to-action p {
@@ -320,6 +321,7 @@
     max-width: 600px;
     margin: 0 auto 2.5rem;
     opacity: 0.9;
+    color: var(--color-text);
   }
 
   @media (max-width: 768px) {

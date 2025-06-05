@@ -85,7 +85,9 @@ nav {
   font-weight: 700;
   font-size: 1.2rem;
   text-decoration: none;
-  color: var(--color-primary);
+}
+.logo span {
+  color: var(--color-text);
 }
 
 .logo img {
