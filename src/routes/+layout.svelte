@@ -4,20 +4,14 @@
 	import '../app.css';
 	import { theme } from '$lib/stores';
 	import { browser } from '$app/environment';
-	import { dev } from '$app/environment';
 
 	if (browser) {
 		theme.subscribe(theme => {
 			document.body.setAttribute('data-theme', theme);
 		});
 
-		// Initialize Eruda in development or when debug flag is present
-		const urlParams = new URLSearchParams(window.location.search);
-		const debugMode = dev || urlParams.get('debug') === 'true';
-
-		if (debugMode) {
-			import('eruda').then(eruda => eruda.init());
-		}
+		// Load Eruda unconditionally
+		import('eruda').then(eruda => eruda.init());
 	}
 </script>
 
