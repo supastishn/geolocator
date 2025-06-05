@@ -56,18 +56,13 @@
 }
 
 header {
-  background: rgba(255,255,255,0.85);
+  background: rgba(var(--color-surface-rgb), 0.85);
   backdrop-filter: blur(12px);
   position: sticky;
   top: 0;
   z-index: 50;
   border-bottom: 1px solid var(--border-color);
   transition: all 0.3s;
-}
-
-[data-theme="dark"] header {
-  background: rgba(30,41,59,0.85);
-  border-bottom: 1px solid #0f172a;
 }
 
 nav {
