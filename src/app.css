@@ -252,3 +252,8 @@ main, header {
   position: relative;
   z-index: 1;
 }
+
+/* Fixes for Eruda console */
+div.eruda-dev-tools {
+  z-index: 10000 !important;
+}
