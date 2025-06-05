@@ -72,7 +72,7 @@
 
 <style>
   .hero {
-    background: linear-gradient(130deg, #00467f, #4361ee);
+    background: var(--hero-gradient);
     color: white;
     text-align: center;
     padding: 6rem 1rem 8rem;
@@ -95,7 +95,7 @@
   }
 
   .gradient-text {
-    background: linear-gradient(90deg, #08aeea, #b721ff);
+    background: var(--cta-gradient);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     font-size: 4rem;
@@ -304,7 +304,7 @@
   }
 
   .call-to-action {
-    background: var(--color-primary);
+    background: var(--cta-gradient);
     color: white;
     text-align: center;
     padding: 6rem 2rem;
@@ -349,9 +349,13 @@
 :global(:root) {
   --color-surface-rgb: 255, 255, 255;
   --color-bg-1-rgb: 248, 250, 252;
+  --hero-gradient: linear-gradient(130deg, #00467f, #4361ee);
+  --cta-gradient: var(--color-primary);
 }
 :global([data-theme="dark"]) {
   --color-surface-rgb: 30, 41, 59;
   --color-bg-1-rgb: 15, 23, 42;
+  --hero-gradient: linear-gradient(130deg, #001f3f, #1e3b8a);
+  --cta-gradient: linear-gradient(130deg, #3a0ca3, #4361ee);
 }
 </style>
