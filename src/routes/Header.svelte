@@ -56,13 +56,16 @@
 }
 
 header {
-  background: rgba(var(--color-surface-rgb), 0.85);
   backdrop-filter: blur(12px);
   position: sticky;
   top: 0;
   z-index: 50;
-  border-bottom: 1px solid var(--border-color);
   transition: all 0.3s;
+}
+
+:global(header) {
+  background: rgba(var(--header-bg-rgb), 0.85);
+  border-bottom: 1px solid var(--border-color);
 }
 
 nav {
