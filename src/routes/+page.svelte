@@ -352,6 +352,12 @@
   --hero-gradient: linear-gradient(130deg, #0066a7, #5d7cff);
   --cta-gradient: var(--color-primary);
 }
+:global([data-theme="light"]) {
+  --color-surface-rgb: 255, 255, 255;
+  --color-bg-1-rgb: 248, 250, 252;
+  --hero-gradient: linear-gradient(130deg, #0066a7, #5d7cff);
+  --cta-gradient: var(--color-primary);
+}
 :global([data-theme="dark"]) {
   --color-surface-rgb: 30, 41, 59;
   --color-bg-1-rgb: 15, 23, 42;
