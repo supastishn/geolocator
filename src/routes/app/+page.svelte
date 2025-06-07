@@ -15,6 +15,7 @@
   }
 
   let imageFile;
+  let previewImageUrl = null;
   let result = null;
   let isLoading = false;
   let error = null;
@@ -72,6 +73,28 @@
     });
   }
 
+  // Handle file input change for preview and validation
+  function handleImageChange(e) {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    // Security: validate file size and type
+    if (files[0].size > 5 * 1024 * 1024) { // 5MB limit
+      error = "Image too large (max 5MB)";
+      return;
+    }
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(files[0].type)) {
+      error = "Unsupported format (use JPEG, PNG or WEBP)";
+      return;
+    }
+
+    imageFile = files;
+    if (previewImageUrl) {
+      URL.revokeObjectURL(previewImageUrl);
+    }
+    previewImageUrl = URL.createObjectURL(files[0]);
+  }
+
   // Initial submit: only 1 iteration, show info, allow user to iterate
   const handleSubmit = async () => {
     if (!imageFile) return;
@@ -90,6 +113,10 @@
     xmlDoc = null;
     mapImage = null; // stores the satellite image URL for iteration
     imageBase64 = null; // stores the original image base64 for iteration
+    if (previewImageUrl) {
+      URL.revokeObjectURL(previewImageUrl);
+      previewImageUrl = null;
+    }
 
     try {
       imageBase64 = await readFileAsBase64(imageFile[0]);
@@ -133,6 +160,11 @@
     error = null;
     streaming = true;
 
+    if (previewImageUrl) {
+      URL.revokeObjectURL(previewImageUrl);
+      previewImageUrl = null;
+    }
+
     try {
       // Use stored imageBase64 and mapImage for dual-image iteration
       if (!imageBase64 || !mapImage) {
@@ -173,6 +205,11 @@
       streaming = false;
     }
   };
+
+  import { onDestroy } from 'svelte';
+  onDestroy(() => {
+    if (previewImageUrl) URL.revokeObjectURL(previewImageUrl);
+  });
 </script>
 
 <svelte:head>
@@ -191,7 +228,7 @@
         <input 
           type="file" 
           accept="image/*" 
-          bind:files={imageFile}
+          on:change={handleImageChange}
           disabled={isLoading}
         />
         <span>{imageFile && imageFile.length ? imageFile[0].name : 'Choose an image...'}</span>
@@ -200,6 +237,20 @@
         {isLoading ? 'Analyzing Location...' : 'Find Location'}
       </button>
     </div>
+
+    {#if previewImageUrl}
+      <div class="image-preview-card card">
+        <h3>Image Preview</h3>
+        <img src={previewImageUrl} alt="Upload preview" class="preview-image" />
+        <button on:click={() => {
+          if (previewImageUrl) URL.revokeObjectURL(previewImageUrl);
+          previewImageUrl = null;
+          imageFile = null;
+        }} class="remove-button">
+          Remove Image
+        </button>
+      </div>
+    {/if}
 
     {#if streaming && streamingXml}
       <div class="xml-output">
@@ -468,4 +519,24 @@
 .markdown p {
   margin: 1rem 0;
 }
+  .image-preview-card {
+    margin-top: 1.5rem;
+    text-align: center;
+    padding: 1rem;
+  }
+
+  .preview-image {
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: var(--border-radius-sm);
+    margin: 1rem 0;
+    border: 1px solid var(--border-color);
+  }
+
+  .remove-button {
+    background: var(--color-danger);
+    color: white;
+    padding: 0.5rem 1rem;
+    margin-top: 0.5rem;
+  }
 </style>
