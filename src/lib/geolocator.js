@@ -14,12 +14,14 @@ Respond EXCLUSIVELY using these XML tags:
 <answer>
   <city>[City name]</city>
   <country>[Country name]</country>
+  <confidence>[0-100 confidence score]</confidence>
 </answer>
 
 Rules:
 1. First analyze the image features
 2. Request satellite views using <satellite> when needed
 3. Final answer MUST include both <satellite> and <answer>
+4. Include confidence score (0-100) based on your certainty
 `.trim();
 
 /**
@@ -85,7 +87,8 @@ export async function getLocation(imageData, onStreamChunk = null, mapUrl = null
         city: xmlDoc.querySelector('city')?.textContent || 'Unknown',
         country: xmlDoc.querySelector('country')?.textContent || 'Unknown',
         latitude: xmlDoc.querySelector('latitude')?.textContent || '0',
-        longitude: xmlDoc.querySelector('longitude')?.textContent || '0'
+        longitude: xmlDoc.querySelector('longitude')?.textContent || '0',
+        confidence: xmlDoc.querySelector('confidence')?.textContent || '0'
       };
     }
     return null;
@@ -161,7 +164,8 @@ export async function getLocation(imageData, onStreamChunk = null, mapUrl = null
         city: xmlDoc.querySelector('city')?.textContent || 'Unknown',
         country: xmlDoc.querySelector('country')?.textContent || 'Unknown',
         latitude: xmlDoc.querySelector('latitude')?.textContent || '0',
-        longitude: xmlDoc.querySelector('longitude')?.textContent || '0'
+        longitude: xmlDoc.querySelector('longitude')?.textContent || '0',
+        confidence: xmlDoc.querySelector('confidence')?.textContent || '0'
       };
     }
 

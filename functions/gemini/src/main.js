@@ -11,6 +11,7 @@ Identify locations using satellite imagery. Respond in EXACTLY this format:
 <answer>
   <city>City name</city>
   <country>Country name</country>
+  <confidence>0-100</confidence>
 </answer>
 `.trim();
 

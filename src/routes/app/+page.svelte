@@ -29,6 +29,7 @@
   let longitude = '';
   let city = '';
   let country = '';
+  let confidence = '';
   let xmlDoc = null;
   let mapImage = null; // stores the satellite image URL for iteration
   let imageBase64 = null; // stores the original image base64 for iteration
@@ -49,6 +50,7 @@
         longitude: doc.querySelector('longitude')?.textContent || '',
         city: doc.querySelector('city')?.textContent || '',
         country: doc.querySelector('country')?.textContent || '',
+        confidence: doc.querySelector('confidence')?.textContent || '',
         hasSatellite: !!doc.querySelector('satellite'),
         hasAnswer: !!doc.querySelector('answer'),
         xmlDoc: doc
@@ -132,6 +134,7 @@
           city = fields.city;
           country = fields.country;
           xmlDoc = fields.xmlDoc;
+          confidence = fields.confidence;
 
           // If satellite is requested, store coordinates
           if (fields.hasSatellite && latitude && longitude) {
@@ -184,6 +187,7 @@
           city = fields.city;
           country = fields.country;
           xmlDoc = fields.xmlDoc;
+          confidence = fields.confidence;
 
           if (fields.hasSatellite && latitude && longitude) {
             mapImage = await getSatelliteImage(latitude, longitude);
@@ -293,6 +297,11 @@
             {/if}
           </div>
         {/if}
+        <div class="confidence-row">
+          {#if confidence}
+            <span><strong>Confidence:</strong> {confidence}%</span>
+          {/if}
+        </div>
       </div>
     {/if}
 
@@ -316,6 +325,9 @@
         <h2>Location Found:</h2>
         <p class="location">{result.city}, {result.country}</p>
         <p class="coordinates">Coordinates: {result.latitude}, {result.longitude}</p>
+        {#if result.confidence !== '0'}
+          <p class="confidence">Confidence: {result.confidence}%</p>
+        {/if}
         <MapView 
           lat={result.latitude} 
           lng={result.longitude} 
@@ -538,5 +550,24 @@
     color: white;
     padding: 0.5rem 1rem;
     margin-top: 0.5rem;
+  }
+  /* Add style for confidence row */
+  .confidence-row {
+    margin-top: 1rem;
+  }
+  
+  .confidence-row span {
+    background: var(--color-surface-2);
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius-sm);
+    font-weight: 500;
+    border: 1px solid var(--border-color);
+  }
+
+  .confidence {
+    margin-top: 0.5rem;
+    font-weight: 600;
+    color: var(--color-primary);
+    font-size: 1.1rem;
   }
 </style>
