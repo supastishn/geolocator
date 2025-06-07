@@ -223,7 +223,7 @@
 <main class="container">
   <div class="card">
     <h1>
-      <span class="emoji">🛰️</span> Geobot
+      <span class="emoji">🛰️</span> GeoBot
     </h1>
     
     <!-- Upload section -->

@@ -11,7 +11,7 @@
 <div class="hero">
   <div class="hero-content">
     <h1>
-      <span class="emoji">🌍</span> GeoLocator
+      <span class="emoji">🌍</span> GeoBot
       <div class="gradient-text">AI-Powered Location Identification</div>
     </h1>
     <p class="hero-subtitle">Upload any landscape photo and instantly identify its location using satellite imagery and advanced AI</p>
@@ -102,6 +102,14 @@
     line-height: 1;
     margin-top: 0.5rem;
     font-weight: 800;
+  }
+
+  /* Make hero text lighter in light mode */
+  :global([data-theme="light"]) .hero h1,
+  :global([data-theme="light"]) .hero p,
+  :global([data-theme="light"]) .hero .gradient-text {
+    color: rgba(255, 255, 255, 0.9) !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   }
 
   .hero-subtitle {

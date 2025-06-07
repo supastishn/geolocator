@@ -13,8 +13,8 @@
   <div class="container">
     <nav>
       <a href="/" class="logo">
-        <img src="./favicon.png" alt="GeoLocator Logo" />
-        <span>GeoLocator</span>
+        <img src="./favicon.png" alt="GeoBot Logo" />
+        <span>GeoBot</span>
       </a>
       <div class="nav-links">
         <ul>
