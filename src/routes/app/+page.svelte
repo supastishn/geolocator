@@ -325,9 +325,7 @@
         <h2>Location Found:</h2>
         <p class="location">{result.city}, {result.country}</p>
         <p class="coordinates">Coordinates: {result.latitude}, {result.longitude}</p>
-        {#if result.confidence !== '0'}
-          <p class="confidence">Confidence: {result.confidence}%</p>
-        {/if}
+        <p class="confidence">Confidence: {result.confidence}%</p>
         <MapView 
           lat={result.latitude} 
           lng={result.longitude} 

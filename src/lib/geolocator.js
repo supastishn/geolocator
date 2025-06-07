@@ -29,14 +29,21 @@ Rules:
  * If isIterate is true, sends both the original and satellite images.
  */
 function buildMessage(imageData, mapUrl, isIterate = false) {
+  const confidenceInstruction = "\n5. Confidence score (0-100) based on your certainty MUST be provided in <confidence> tag";
   if (!isIterate || !mapUrl) {
     return [
-      { type: "text", text: "Identify this location:" },
+      { 
+        type: "text", 
+        text: `Identify this location:${confidenceInstruction}` 
+      },
       { type: "image_url", image_url: { url: imageData } }
     ];
   }
   return [
-    { type: "text", text: "Original photo and satellite view:" },
+    { 
+      type: "text", 
+      text: `Original photo and satellite view:${confidenceInstruction}` 
+    },
     { type: "image_url", image_url: { url: imageData } },
     { type: "image_url", image_url: { url: mapUrl } }
   ];
