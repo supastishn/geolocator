@@ -349,7 +349,7 @@
 :global(:root) {
   --color-surface-rgb: 255, 255, 255;
   --color-bg-1-rgb: 248, 250, 252;
-  --hero-gradient: linear-gradient(130deg, #00467f, #4361ee);
+  --hero-gradient: linear-gradient(130deg, #0066a7, #5d7cff);
   --cta-gradient: var(--color-primary);
 }
 :global([data-theme="dark"]) {
