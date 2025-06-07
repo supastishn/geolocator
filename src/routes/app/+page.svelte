@@ -566,4 +566,19 @@
     color: var(--color-primary);
     font-size: 1.1rem;
   }
+
+  /* Add this at the end of the style tag */
+  .result-card p.location,
+  .result-card p.coordinates {
+    max-width: 100%;
+    width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
+    box-sizing: border-box;
+    padding: 0 1rem;
+  }
+
+  .result-card p.coordinates {
+    word-break: break-word;
+  }
 </style>
