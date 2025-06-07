@@ -108,8 +108,13 @@
   :global([data-theme="light"]) .hero h1,
   :global([data-theme="light"]) .hero p,
   :global([data-theme="light"]) .hero .gradient-text {
-    color: rgba(255, 255, 255, 0.9) !important;
+    color: rgba(255, 255, 255, 0.9);
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Add this new rule to make the gradient text lighter */
+  :global([data-theme="light"]) .gradient-text {
+    opacity: 0.9;
   }
 
   .hero-subtitle {
