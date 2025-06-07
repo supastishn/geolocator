@@ -271,46 +271,43 @@
     {#if !isLoading && (thinking || latitude || longitude)}
       <div class="ai-info card">
         <h2>AI Reasoning</h2>
+        <div class="location-identity">
+          <div class="coords-row">
+            {#if latitude}
+              <span><strong>Latitude:</strong> {latitude}</span>
+            {/if}
+            {#if longitude}
+              <span><strong>Longitude:</strong> {longitude}</span>
+            {/if}
+          </div>
+          {#if city || country}
+            <div class="city-country-row">
+              {#if city}
+                <span><strong>City:</strong> {city}</span>
+              {/if}
+              {#if country}
+                <span><strong>Country:</strong> {country}</span>
+              {/if}
+            </div>
+          {/if}
+          <div class="confidence-row">
+            {#if confidence}
+              <span><strong>Confidence:</strong> {confidence}%</span>
+            {/if}
+          </div>
+        </div>
+        
         {#if thinking}
           <div class="thinking">
-            <strong>Thinking:</strong>
+            <strong>Analysis:</strong>
             <article class="thinking-box markdown">
               {@html purify?.sanitize(marked.parse(thinking || ''))}
             </article>
           </div>
         {/if}
-        <div class="coords-row">
-          {#if latitude}
-            <span><strong>Latitude:</strong> {latitude}</span>
-          {/if}
-          {#if longitude}
-            <span><strong>Longitude:</strong> {longitude}</span>
-          {/if}
-        </div>
-        {#if city || country}
-          <div class="city-country-row">
-            {#if city}
-              <span><strong>City:</strong> {city}</span>
-            {/if}
-            {#if country}
-              <span><strong>Country:</strong> {country}</span>
-            {/if}
-          </div>
-        {/if}
-        <div class="confidence-row">
-          {#if confidence}
-            <span><strong>Confidence:</strong> {confidence}%</span>
-          {/if}
-        </div>
       </div>
     {/if}
 
-    {#if !isLoading && finalXml}
-      <div class="xml-output debug-xml">
-        <div class="title">Final XML Output:</div>
-        <pre>{finalXml}</pre>
-      </div>
-    {/if}
 
     <!-- Satellite image preview -->
     {#if !isLoading && mapImage && !result}
