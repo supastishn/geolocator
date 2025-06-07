@@ -246,6 +246,7 @@
       <div class="image-preview-card card">
         <h3>Image Preview</h3>
         <img src={previewImageUrl} alt="Upload preview" class="preview-image" />
+        <br />
         <button on:click={() => {
           if (previewImageUrl) URL.revokeObjectURL(previewImageUrl);
           previewImageUrl = null;
