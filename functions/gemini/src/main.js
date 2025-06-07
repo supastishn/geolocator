@@ -25,6 +25,7 @@ export default async ({ req, res, log, error }) => {
     // Parse body as JSON
     const body = JSON.parse(req.bodyRaw || '{}');
     const base64Image = body.image; // Direct access to image field
+    const requestedModel = body.model; // Get requested model
 
     if (!base64Image) {
       return res.json({ error: "Missing 'image' field in request" }, 400);
@@ -39,7 +40,7 @@ export default async ({ req, res, log, error }) => {
     }
 
     const response = await fetch(
-      `${baseUrl}/${model}:generateContent?key=${apiKey}`,
+      `${baseUrl}/${requestedModel || model}:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: {

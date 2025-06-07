@@ -61,7 +61,10 @@ export async function getLocation(imageData, onStreamChunk = null, mapUrl = null
 
   if (settingsValue.provider === 'gemini') {
     // Handle Gemini function call
-    const response = await callGeminiFunction(imageData);
+    const response = await callGeminiFunction(
+      imageData,
+      settingsValue.geminiModel // Pass selected Gemini model
+    );
     if (!response.ok) {
       let err = 'Failed to get location (Gemini)';
       try {
@@ -198,15 +201,19 @@ async function getSatelliteImage(lat, lon) {
 /**
  * Gemini function call helper using Appwrite Functions SDK.
  * @param {string} base64Image
+ * @param {string} modelName
  * @returns {Promise<{ok: boolean, json: function(): Promise<any>}>}
  */
-async function callGeminiFunction(base64Image) {
+async function callGeminiFunction(base64Image, modelName) {
   // Remove data URL prefix
   const base64Data = base64Image.startsWith('data:')
     ? base64Image.split(',')[1]
     : base64Image;
 
-  const payload = JSON.stringify({ image: base64Data });
+  const payload = JSON.stringify({
+    image: base64Data,
+    model: modelName // Include selected model
+  });
 
   const execution = await functions.createExecution(
     'gemini',

@@ -6,6 +6,7 @@
   let apiKey = $settings.apiKey;
   let baseUrl = $settings.baseUrl;
   let model = $settings.model;
+  let geminiModel = $settings.geminiModel; // Add this line
   let saved = false;
   let saveTimeout;
   let saveError = '';
@@ -21,7 +22,7 @@
       provider = 'openai';
       return;
     }
-    $settings = { provider, apiKey, baseUrl, model };
+    $settings = { provider, apiKey, baseUrl, model, geminiModel }; // Add geminiModel
     saved = true;
     clearTimeout(saveTimeout);
     saveTimeout = setTimeout(() => {
@@ -70,6 +71,23 @@
              class="centered-input" />
     </label>
   {:else}
+    <div class="gemini-models">
+      <h3>Gemini Model:</h3>
+      <div class="models-options">
+        <label>
+          <input type="radio" bind:group={geminiModel} value="gemini-2.5-flash-preview-05-20" />
+          Pro (recommended)
+        </label>
+        <label>
+          <input type="radio" bind:group={geminiModel} value="gemini-2.0-flash" />
+          Medium
+        </label>
+        <label>
+          <input type="radio" bind:group={geminiModel} value="gemini-2.0-flash-lite" />
+          Lite
+        </label>
+      </div>
+    </div>
     <p class="info-note theme-aware">
       Using Appwrite Gemini function - no configuration needed
     </p>
