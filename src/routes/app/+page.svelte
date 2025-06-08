@@ -553,8 +553,10 @@
   }
 
   .model-selector {
-    margin-bottom: 1.5rem;
     display: flex;
+    justify-content: center;
+    width: fit-content;
+    margin: 0 auto 1.5rem;
     align-items: center;
     gap: 0.75rem;
     border-radius: var(--border-radius-sm);
