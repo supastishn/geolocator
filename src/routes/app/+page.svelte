@@ -245,12 +245,12 @@
       <label for="model">Model:</label>
       <select 
         id="model" 
-        bind:value={$settings.geminiModel}
-        disabled={isLoading || (!$auth && $settings.provider === 'gemini')}
+        bind:value={model}
+        disabled={isLoading}
       >
         <option value="gemini-2.0-flash-lite">Lite</option>
-        <option value="gemini-2.0-flash" disabled={!$auth}>Medium</option>
-        <option value="gemini-2.5-flash-preview-05-20" disabled={!$auth}>Pro</option>
+        <option value="gemini-2.0-flash">Medium</option>
+        <option value="gemini-2.5-flash-preview-05-20">Pro</option>
       </select>
     </div>
     

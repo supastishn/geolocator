@@ -6,7 +6,6 @@
   let apiKey = $settings.apiKey;
   let baseUrl = $settings.baseUrl;
   let model = $settings.model;
-  let geminiModel = $settings.geminiModel; // Add this line
   let saved = false;
   let saveTimeout;
   let saveError = '';
@@ -14,7 +13,7 @@
   // No saveDisabled logic needed
 
   const saveSettings = () => {
-    $settings = { provider, apiKey, baseUrl, model, geminiModel }; // Add geminiModel
+    $settings = { provider, apiKey, baseUrl, model };
     saved = true;
     clearTimeout(saveTimeout);
     saveTimeout = setTimeout(() => {
@@ -64,26 +63,8 @@
     </label>
   {:else}
     <div class="gemini-models">
-      <h3>Gemini Model:</h3>
-      <div class="models-options">
-        <label>
-          <input type="radio" bind:group={geminiModel} value="gemini-2.5-flash-preview-05-20" disabled={!$auth} />
-          Pro (recommended){#if !$auth}<span class="login-note"> - Login required</span>{/if}
-        </label>
-        <label>
-          <input type="radio" bind:group={geminiModel} value="gemini-2.0-flash" disabled={!$auth} />
-          Medium{#if !$auth}<span class="login-note"> - Login required</span>{/if}
-        </label>
-        <label>
-          <input type="radio" bind:group={geminiModel} value="gemini-2.0-flash-lite" />
-          Lite
-        </label>
-      </div>
-      {#if !$auth}
-        <p class="info-note theme-aware">
-          Non-logged in users can only use the Lite model
-        </p>
-      {/if}
+      <h3>Gemini Model Selection</h3>
+      <p>Model selection is now available only in the app interface.</p>
     </div>
   {/if}
 
