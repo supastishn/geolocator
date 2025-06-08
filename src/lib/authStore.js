@@ -21,7 +21,7 @@ export const login = async (email, password) => {
 export const register = async (email, password, name) => {
   const user = await account.create('unique()', email, password, name);
   await account.createEmailPasswordSession(email, password);
-  auth.set(user);
+  auth.set(await account.get());  // Set auth to the logged-in user object
 };
 
 export const logout = async () => {

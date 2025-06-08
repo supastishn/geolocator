@@ -14,8 +14,8 @@
     error = '';
     try {
       await register(email, password, name);
-      // Fix redirect
-      goto(`${base}/`);
+      // Redirect to main page after registration
+      goto(`${base}/app`);
     } catch (err) {
       error = err.message;
     }
