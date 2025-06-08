@@ -5,7 +5,7 @@ export const settings = writable({
   baseUrl: import.meta.env.VITE_OPENAI_BASE_URL || 'https://api.openai.com/v1',
   model: import.meta.env.VITE_DEFAULT_MODEL || 'gpt-4-vision-preview',
   provider: 'openai',
-  geminiModel: 'gemini-2.5-flash-preview-05-20' // Add this line
+  geminiModel: 'gemini-2.0-flash' // Change default to medium
 });
 
 if (typeof localStorage !== 'undefined') {

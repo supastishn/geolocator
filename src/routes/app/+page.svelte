@@ -1,5 +1,6 @@
 <script>
-  import { settings } from '$lib/stores.js';
+  import { settings } from '$lib/stores';
+  import { get } from 'svelte/store';
   import { getLocation } from '$lib/geolocator';
   import MapView from '$lib/MapView.svelte';
   import { marked } from 'marked';
@@ -23,9 +24,6 @@
   let finalXml = '';
   let streaming = false;
 
-  // Model selector for Gemini
-  let selectedModel = 'gemini-2.0-flash'; // Default to Medium
-
   // New state for parsed info
   let thinking = '';
   let latitude = '';
@@ -36,9 +34,6 @@
   let xmlDoc = null;
   let mapImage = null; // stores the satellite image URL for iteration
   let imageBase64 = null; // stores the original image base64 for iteration
-
-  // Manual iteration workflow state
-  // let iterationPhase = 'initial'; // Removed: no longer needed
 
   // Helper to parse XML for <thinking>, <latitude>, <longitude>, <city>, <country>
   function parseXmlFields(xml) {
@@ -125,6 +120,8 @@
 
     try {
       imageBase64 = await readFileAsBase64(imageFile[0]);
+      // Capture current value
+      const modelName = $settings.geminiModel;
       // Only do 1 iteration for initial run
       const location = await getLocation(
         imageBase64,
@@ -145,7 +142,7 @@
           }
         },
         null, // mapUrl
-        selectedModel // Pass selected model
+        modelName // Pass selected model
       );
       finalXml = streamingXml;
       result = location;
@@ -181,6 +178,8 @@
         streaming = false;
         return;
       }
+      // Capture current value
+      const modelName = $settings.geminiModel;
       const location = await getLocation(
         imageBase64,
         async (xml) => {
@@ -199,7 +198,7 @@
           }
         },
         mapImage, // satellite image
-        selectedModel // Pass selected model
+        modelName // Pass selected model
       );
       finalXml = streamingXml;
       result = location;
@@ -235,7 +234,11 @@
     <!-- Model selector dropdown -->
     <div class="model-selector">
       <label for="model">Model:</label>
-      <select id="model" bind:value={selectedModel} disabled={isLoading}>
+      <select 
+        id="model" 
+        bind:value={$settings.geminiModel} 
+        disabled={isLoading}
+      >
         <option value="gemini-2.0-flash-lite">Lite</option>
         <option value="gemini-2.0-flash">Medium</option>
         <option value="gemini-2.5-flash-preview-05-20">Pro</option>
