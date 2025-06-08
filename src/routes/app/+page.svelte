@@ -245,7 +245,7 @@
       <label for="model">Model:</label>
       <select 
         id="model" 
-        bind:value={model}
+        bind:value={$settings.model}
         disabled={isLoading}
       >
         <option value="gemini-2.0-flash-lite">Lite</option>
