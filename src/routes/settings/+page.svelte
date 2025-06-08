@@ -11,17 +11,9 @@
   let saveTimeout;
   let saveError = '';
 
-  // Computed: should Save button be disabled?
-  $: saveDisabled = provider === 'gemini' && !$auth;
+  // No saveDisabled logic needed
 
   const saveSettings = () => {
-    if (provider === 'gemini' && !$auth) {
-      saveError = "Gemini function is only available for logged in users";
-      setTimeout(() => saveError = '', 3000);
-      // Change back to "no setup"
-      provider = 'openai';
-      return;
-    }
     $settings = { provider, apiKey, baseUrl, model, geminiModel }; // Add geminiModel
     saved = true;
     clearTimeout(saveTimeout);
@@ -46,7 +38,7 @@
     </label>
     <label>
       <input type="radio" name="provider" bind:group={provider} value="gemini" />
-      {!$auth ? "No setup (Requires login)" : "Gemini Function"}
+      Gemini Function
     </label>
   </div>
 
@@ -94,7 +86,7 @@
   {/if}
 
   <div class="button-row">
-    <button on:click={saveSettings} disabled={saveDisabled}>Save Settings</button>
+    <button on:click={saveSettings}>Save Settings</button>
   </div>
   {#if saved}
     <div class="save-feedback">Settings saved!</div>
@@ -218,4 +210,10 @@ label {
 .centered-input::placeholder {
   color: var(--color-text-secondary);
 }
+  .login-note {
+    color: var(--color-danger);
+    font-weight: 600;
+    margin-left: 0.5rem;
+    font-size: 0.9rem;
+  }
 </style>
