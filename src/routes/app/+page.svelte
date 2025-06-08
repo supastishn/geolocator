@@ -7,6 +7,8 @@
   import DOMPurify from 'dompurify';
   import { browser } from '$app/environment';
   import { base } from '$app/paths';
+  import { auth } from '$lib/authStore';
+  import { onMount } from 'svelte';
 
   marked.setOptions({ breaks: true }); // Convert newlines to <br>
   // Initialize purify only in the browser
@@ -14,6 +16,13 @@
   if (browser) {
     purify = DOMPurify(window);
   }
+
+  // Auto-select Lite model for non-auth users
+  onMount(() => {
+    if ($settings.provider === 'gemini' && !$auth) {
+      $settings.geminiModel = 'gemini-2.0-flash-lite';
+    }
+  });
 
   let imageFile;
   let previewImageUrl = null;
@@ -236,12 +245,12 @@
       <label for="model">Model:</label>
       <select 
         id="model" 
-        bind:value={$settings.geminiModel} 
-        disabled={isLoading}
+        bind:value={$settings.geminiModel}
+        disabled={isLoading || (!$auth && $settings.provider === 'gemini')}
       >
         <option value="gemini-2.0-flash-lite">Lite</option>
-        <option value="gemini-2.0-flash">Medium</option>
-        <option value="gemini-2.5-flash-preview-05-20">Pro</option>
+        <option value="gemini-2.0-flash" disabled={!$auth}>Medium</option>
+        <option value="gemini-2.5-flash-preview-05-20" disabled={!$auth}>Pro</option>
       </select>
     </div>
     

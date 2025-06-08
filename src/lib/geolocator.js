@@ -59,9 +59,9 @@ function buildMessage(imageData, mapUrl, isIterate = false) {
  */
 export async function getLocation(imageData, onStreamChunk = null, mapUrl = null, modelName = 'gemini-2.0-flash') {
   const settingsValue = get(settings);
-
-  // Enforce Lite model for non-logged-in users
   const authState = get(auth);
+
+  // ENSURE ONLY LITE IS USED FOR NON-AUTH
   if (settingsValue.provider === 'gemini' && !authState) {
     modelName = 'gemini-2.0-flash-lite';
   }
