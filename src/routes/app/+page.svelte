@@ -23,6 +23,9 @@
   let finalXml = '';
   let streaming = false;
 
+  // Model selector for Gemini
+  let selectedModel = 'gemini-2.0-flash'; // Default to Medium
+
   // New state for parsed info
   let thinking = '';
   let latitude = '';
@@ -140,7 +143,9 @@
           if (fields.hasSatellite && latitude && longitude) {
             mapImage = await getSatelliteImage(latitude, longitude);
           }
-        }
+        },
+        null, // mapUrl
+        selectedModel // Pass selected model
       );
       finalXml = streamingXml;
       result = location;
@@ -193,7 +198,8 @@
             mapImage = await getSatelliteImage(latitude, longitude);
           }
         },
-        mapImage // pass satellite image url for dual-image
+        mapImage, // satellite image
+        selectedModel // Pass selected model
       );
       finalXml = streamingXml;
       result = location;
@@ -225,6 +231,16 @@
     <h1>
       <span class="emoji">🛰️</span> GeoBot
     </h1>
+
+    <!-- Model selector dropdown -->
+    <div class="model-selector">
+      <label for="model">Model:</label>
+      <select id="model" bind:value={selectedModel} disabled={isLoading}>
+        <option value="gemini-2.0-flash-lite">Lite</option>
+        <option value="gemini-2.0-flash">Medium</option>
+        <option value="gemini-2.5-flash-preview-05-20">Pro</option>
+      </select>
+    </div>
     
     <!-- Upload section -->
     <div class="upload-area">
@@ -531,6 +547,43 @@
     margin-top: 1.5rem;
     text-align: center;
     padding: 1rem;
+  }
+
+  .model-selector {
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    border-radius: var(--border-radius-sm);
+    padding: 0.8rem 1.2rem;
+    background: var(--color-surface-2);
+    border: 1px solid var(--border-color);
+  }
+
+  .model-selector label {
+    font-weight: 500;
+    margin-right: 0.5rem;
+    color: var(--color-text);
+  }
+
+  .model-selector select {
+    background: var(--color-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    padding: 0.5rem 1rem;
+    color: var(--color-text);
+    font-size: 1rem;
+  }
+
+  .model-selector select:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+  }
+
+  button[disabled], select[disabled] {
+    opacity: 0.6;
+    cursor: not-allowed;
   }
 
   .preview-image {

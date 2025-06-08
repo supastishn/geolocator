@@ -54,16 +54,17 @@ function buildMessage(imageData, mapUrl, isIterate = false) {
  * @param {string} imageData
  * @param {(xmlChunk: string) => void} onStreamChunk - callback for streaming XML output
  * @param {string|null} mapUrl - optional satellite image url for iteration
+ * @param {string} modelName - Gemini model name to use (optional, defaults to 'gemini-2.0-flash')
  * @returns {Promise<object|null>}
  */
-export async function getLocation(imageData, onStreamChunk = null, mapUrl = null) {
+export async function getLocation(imageData, onStreamChunk = null, mapUrl = null, modelName = 'gemini-2.0-flash') {
   const settingsValue = get(settings);
 
   if (settingsValue.provider === 'gemini') {
     // Handle Gemini function call
     const response = await callGeminiFunction(
       imageData,
-      settingsValue.geminiModel // Pass selected Gemini model
+      modelName // Pass selected model
     );
     if (!response.ok) {
       let err = 'Failed to get location (Gemini)';
@@ -212,7 +213,7 @@ async function callGeminiFunction(base64Image, modelName) {
 
   const payload = JSON.stringify({
     image: base64Data,
-    model: modelName // Include selected model
+    model: modelName // Use selected model
   });
 
   const execution = await functions.createExecution(
