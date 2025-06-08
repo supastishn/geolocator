@@ -68,7 +68,10 @@ export default async ({ req, res, log, error }) => {
                 }
               }
             ]
-          }]
+          }],
+          generationConfig: {  // Add this configuration section
+            temperature: 0.2  // Set desired temperature
+          }
         })
       }
     );
