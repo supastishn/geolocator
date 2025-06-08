@@ -222,20 +222,33 @@ async function callGeminiFunction(base64Image, modelName) {
     model: modelName // Use selected model
   });
 
-  const execution = await functions.createExecution(
-    'gemini',
-    payload,
-    false,
-    '/', // Path should be '/'
-    'POST',
-    {
-      'Content-Type': 'application/json',
-      'Content-Length': String(payload.length)
-    }
-  );
+  try {
+    const execution = await functions.createExecution(
+      'gemini',
+      payload,
+      false,
+      '/', // Path should be '/'
+      'POST',
+      {
+        'Content-Type': 'application/json',
+        'Content-Length': String(payload.length)
+      }
+    );
 
-  return {
-    ok: execution.status === 'completed',
-    json: JSON.parse(execution.responseBody) // Return parsed object directly
-  };
+    // Error handling for unauthorized use
+    if (execution.responseStatusCode === 401) {
+      throw new Error("Unauthorized: Non-logged users can only use Lite model");
+    }
+
+    return {
+      ok: execution.status === 'completed',
+      json: JSON.parse(execution.responseBody || '{}')
+    };
+  } catch (e) {
+    // If error is thrown, return error object in OpenAI-like format
+    return {
+      ok: false,
+      json: async () => ({ error: e.message })
+    };
+  }
 }

@@ -15,7 +15,6 @@ Identify locations using satellite imagery. Respond in EXACTLY this format:
 </answer>
 `.trim();
 
-// Remove the req.bodyRaw check since we're using body parsing
 export default async ({ req, res, log, error }) => {
   if (req.path === "/ping") {
     return res.text("Pong");
@@ -24,8 +23,17 @@ export default async ({ req, res, log, error }) => {
   try {
     // Parse body as JSON
     const body = JSON.parse(req.bodyRaw || '{}');
-    const base64Image = body.image; // Direct access to image field
-    const requestedModel = body.model; // Get requested model
+    const base64Image = body.image;
+    const requestedModel = body.model;
+
+    // Auth check: Only allow non-logged users to use Lite model
+    const userIdHeader = req.headers['x-appwrite-user-id'];
+    const authTokenHeader = req.headers['authorization'];
+    if (!userIdHeader && !authTokenHeader && requestedModel !== 'gemini-2.0-flash-lite') {
+      return res.json({
+        error: "Unauthorized: Non-logged users can only use Lite model"
+      }, 401);
+    }
 
     if (!base64Image) {
       return res.json({ error: "Missing 'image' field in request" }, 400);

@@ -284,7 +284,11 @@
     {/if}
 
     {#if error}
-      <div class="error">{error}</div>
+      <div class="error">
+        {error && error.includes('Unauthorized') 
+          ? <div>Non-logged users can only use Lite model. Please <a href="{base}/login">login</a> or switch to Lite model</div>
+          : error}
+      </div>
     {/if}
 
     <!-- Analysis results -->
