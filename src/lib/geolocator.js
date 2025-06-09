@@ -24,6 +24,12 @@ Rules:
 4. Include confidence score (0-100) based on your certainty
 `.trim();
 
+const MULTI_IMAGE_PROMPT = SYSTEM_PROMPT + `
+6. Analyze features across ALL provided images
+7. Identify geographical relationships between images
+8. Improve confidence using combined evidence
+`;
+
 /**
  * Helper to build the user message for OpenAI API.
  * If isIterate is true, sends both the original and satellite images.
@@ -203,6 +209,195 @@ async function getSatelliteImage(lat, lon) {
   );
   // Use the correct output URL pattern for Appwrite
   return `https://fra.cloud.appwrite.io/v1/projects/geolocatr/functions/get-mapbox/executions/${execution.$id}/output`;
+}
+
+// Multi-image geolocation function
+export async function getLocationMulti(imageDatas, onStreamChunk = null, modelName = 'gemini-2.0-flash') {
+  const settingsValue = get(settings);
+  const authState = get(auth);
+
+  // ENSURE ONLY LITE IS USED FOR NON-AUTH
+  if (settingsValue.provider === 'gemini' && !authState) {
+    modelName = 'gemini-2.0-flash-lite';
+  }
+
+  if (settingsValue.provider === 'gemini') {
+    // Gemini multi-image function call
+    const response = await callGeminiFunctionMulti(
+      imageDatas,
+      modelName // Pass selected model
+    );
+    if (!response.ok) {
+      let err = 'Failed to get location (Gemini Multi)';
+      try {
+        const data = response.json;
+        err = data.error || err;
+      } catch {}
+      throw new Error(err);
+    }
+    const data = response.json;
+    let content = '';
+    if (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) {
+      content = data.choices[0].message.content;
+      if (onStreamChunk) onStreamChunk(content);
+    } else if (typeof data === 'string') {
+      content = data;
+      if (onStreamChunk) onStreamChunk(content);
+    } else {
+      throw new Error('Unexpected Gemini function response');
+    }
+
+    // Parse the content as XML
+    const parser = new DOMParser();
+    const wrappedContent = `<root>${content}</root>`;
+    const xmlDoc = parser.parseFromString(wrappedContent, "text/xml");
+
+    if (xmlDoc.querySelector('answer')) {
+      return {
+        city: xmlDoc.querySelector('city')?.textContent || 'Unknown',
+        country: xmlDoc.querySelector('country')?.textContent || 'Unknown',
+        latitude: xmlDoc.querySelector('latitude')?.textContent || '0',
+        longitude: xmlDoc.querySelector('longitude')?.textContent || '0',
+        confidence: xmlDoc.querySelector('confidence')?.textContent || '0'
+      };
+    }
+    return null;
+  } else {
+    // OpenAI multi-image call
+    const messages = [{
+      role: "system",
+      content: MULTI_IMAGE_PROMPT
+    }, {
+      role: "user",
+      content: [
+        { 
+          type: "text", 
+          text: "Analyze these RELATED location images:" 
+        },
+        ...imageDatas.map(data => ({
+          type: "image_url",
+          image_url: { url: data }
+        }))
+      ]
+    }];
+
+    // Use OpenAI streaming API
+    const response = await fetch(`${settingsValue.baseUrl}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${settingsValue.apiKey}`
+      },
+      body: JSON.stringify({
+        model: settingsValue.model,
+        messages,
+        max_tokens: 1000,
+        stream: true
+      })
+    });
+
+    if (!response.ok) {
+      let err = 'Failed to get location';
+      try {
+        const data = await response.json();
+        err = data.error?.message || err;
+      } catch {}
+      throw new Error(err);
+    }
+
+    // Stream the response
+    let content = '';
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder('utf-8');
+    let done = false;
+    while (!done) {
+      const { value, done: doneReading } = await reader.read();
+      done = doneReading;
+      if (value) {
+        const chunk = decoder.decode(value, { stream: true });
+        // OpenAI streams as "data: ..." lines
+        for (const line of chunk.split('\n')) {
+          if (line.startsWith('data: ')) {
+            const dataStr = line.replace('data: ', '').trim();
+            if (dataStr === '[DONE]') continue;
+            try {
+              const data = JSON.parse(dataStr);
+              const delta = data.choices?.[0]?.delta?.content;
+              if (delta) {
+                content += delta;
+                if (onStreamChunk) onStreamChunk(content);
+              }
+            } catch {}
+          }
+        }
+      }
+    }
+
+    // Parse the streamed content as XML
+    const parser = new DOMParser();
+    const wrappedContent = `<root>${content}</root>`;
+    const xmlDoc = parser.parseFromString(wrappedContent, "text/xml");
+
+    if (xmlDoc.querySelector('answer')) {
+      return {
+        city: xmlDoc.querySelector('city')?.textContent || 'Unknown',
+        country: xmlDoc.querySelector('country')?.textContent || 'Unknown',
+        latitude: xmlDoc.querySelector('latitude')?.textContent || '0',
+        longitude: xmlDoc.querySelector('longitude')?.textContent || '0',
+        confidence: xmlDoc.querySelector('confidence')?.textContent || '0'
+      };
+    }
+
+    return null;
+  }
+}
+
+/**
+ * Gemini function call helper for multi-image using Appwrite Functions SDK.
+ * @param {string[]} base64Images
+ * @param {string} modelName
+ * @returns {Promise<{ok: boolean, json: function(): Promise<any>}>}
+ */
+async function callGeminiFunctionMulti(base64Images, modelName) {
+  // Remove data URL prefix for each image
+  const images = base64Images.map(img =>
+    img.startsWith('data:') ? img.split(',')[1] : img
+  );
+
+  const payload = JSON.stringify({
+    images,
+    model: modelName // Use selected model
+  });
+
+  try {
+    const execution = await functions.createExecution(
+      'gemini',
+      payload,
+      false,
+      '/', // Path should be '/'
+      'POST',
+      {
+        'Content-Type': 'application/json',
+        'Content-Length': String(payload.length)
+      }
+    );
+
+    // Error handling for unauthorized use
+    if (execution.responseStatusCode === 401) {
+      throw new Error("Unauthorized: Non-logged users can only use Lite model");
+    }
+
+    return {
+      ok: execution.status === 'completed',
+      json: JSON.parse(execution.responseBody || '{}')
+    };
+  } catch (e) {
+    // If error is thrown, return error object in OpenAI-like format
+    return {
+      ok: false,
+      json: async () => ({ error: e.message })
+    };
+  }
 }
 
 /**

@@ -23,7 +23,6 @@ export default async ({ req, res, log, error }) => {
   try {
     // Parse body as JSON
     const body = JSON.parse(req.bodyRaw || '{}');
-    const base64Image = body.image;
     const requestedModel = body.model;
 
     // Auth check: Only allow non-logged users to use Lite model
@@ -35,8 +34,13 @@ export default async ({ req, res, log, error }) => {
       }, 401);
     }
 
-    if (!base64Image) {
-      return res.json({ error: "Missing 'image' field in request" }, 400);
+    // Multi-image support
+    let images = [];
+    if (Array.isArray(body.images)) {
+      images = body.images;
+      if (images.length < 2 || images.length > 5) {
+        return res.json({ error: "You must provide 2-5 images for multi-image analysis" }, 400);
+      }
     }
 
     const apiKey = process.env.GEMINI_API_KEY;
@@ -47,6 +51,53 @@ export default async ({ req, res, log, error }) => {
       return res.json({ error: "GEMINI_API_KEY not set" }, 500);
     }
 
+    let payload;
+    if (images.length > 0) {
+      // Multi-image payload
+      payload = {
+        contents: [{
+          parts: [
+            { text: SYSTEM_PROMPT },
+            { text: "Identify location from MULTIPLE related images" },
+            ...images.map(image => ({
+              inline_data: {
+                mime_type: "image/jpeg",
+                data: image
+              }
+            }))
+          ]
+        }],
+        generationConfig: {
+          temperature: 0.2
+        }
+      };
+    } else {
+      // Single image payload
+      const base64Image = body.image;
+      if (!base64Image) {
+        return res.json({ error: "Missing 'image' field in request" }, 400);
+      }
+      payload = {
+        contents: [{
+          parts: [
+            { text: SYSTEM_PROMPT },
+            {
+              text: "Identify the location from this satellite image"
+            },
+            {
+              inline_data: {
+                mime_type: "image/jpeg",
+                data: base64Image
+              }
+            }
+          ]
+        }],
+        generationConfig: {
+          temperature: 0.2
+        }
+      };
+    }
+
     const response = await fetch(
       `${baseUrl}/${requestedModel || model}:generateContent?key=${apiKey}`,
       {
@@ -54,25 +105,7 @@ export default async ({ req, res, log, error }) => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          contents: [{
-            parts: [
-              { text: SYSTEM_PROMPT },
-              {
-                text: "Identify the location from this satellite image"
-              },
-              {
-                inline_data: {
-                  mime_type: "image/jpeg",
-                  data: base64Image
-                }
-              }
-            ]
-          }],
-          generationConfig: {  // Add this configuration section
-            temperature: 0.2  // Set desired temperature
-          }
-        })
+        body: JSON.stringify(payload)
       }
     );
 

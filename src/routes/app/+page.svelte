@@ -1,7 +1,7 @@
 <script>
   import { settings } from '$lib/stores';
   import { get } from 'svelte/store';
-  import { getLocation } from '$lib/geolocator';
+  import { getLocation, getLocationMulti } from '$lib/geolocator';
   import MapView from '$lib/MapView.svelte';
   import { marked } from 'marked';
   import DOMPurify from 'dompurify';
@@ -24,6 +24,16 @@
     }
   });
 
+  // Multi-image state
+  const MAX_IMAGES = 5;
+  let imageFiles = [];
+  let previewImageUrls = [];
+  let canAnalyze = false;
+  let multiResult = null;
+
+  $: canAnalyze = imageFiles.length > 1 && imageFiles.length <= MAX_IMAGES;
+
+  // Single image state (legacy)
   let imageFile;
   let previewImageUrl = null;
   let result = null;
@@ -82,7 +92,50 @@
     });
   }
 
-  // Handle file input change for preview and validation
+  // Multi-image handler
+  function handleImagesChange(e) {
+    const files = Array.from(e.target.files).slice(0, MAX_IMAGES);
+    // Validate all files
+    for (const file of files) {
+      if (file.size > 5 * 1024 * 1024) {
+        error = "One or more images too large (max 5MB each)";
+        return;
+      }
+      if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+        error = "Unsupported format (use JPEG, PNG or WEBP)";
+        return;
+      }
+    }
+    // Revoke old previews
+    previewImageUrls.forEach(url => URL.revokeObjectURL(url));
+    imageFiles = files;
+    previewImageUrls = files.map(file => URL.createObjectURL(file));
+    error = null;
+  }
+
+  function removeImage(i) {
+    if (previewImageUrls[i]) URL.revokeObjectURL(previewImageUrls[i]);
+    imageFiles = imageFiles.slice(0, i).concat(imageFiles.slice(i + 1));
+    previewImageUrls = previewImageUrls.slice(0, i).concat(previewImageUrls.slice(i + 1));
+  }
+
+  // Multi-image analysis
+  async function analyzeMultiImages() {
+    isLoading = true;
+    error = null;
+    multiResult = null;
+    try {
+      const base64Images = await Promise.all(
+        imageFiles.map(file => readFileAsBase64(file))
+      );
+      multiResult = await getLocationMulti(base64Images);
+    } catch (e) {
+      error = e.message;
+    }
+    isLoading = false;
+  }
+
+  // Handle file input change for preview and validation (legacy single)
   function handleImageChange(e) {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -227,6 +280,7 @@
   import { onDestroy } from 'svelte';
   onDestroy(() => {
     if (previewImageUrl) URL.revokeObjectURL(previewImageUrl);
+    previewImageUrls.forEach(url => URL.revokeObjectURL(url));
   });
 </script>
 
@@ -254,8 +308,35 @@
       </select>
     </div>
     
-    <!-- Upload section -->
+    <!-- Multi-image upload section -->
     <div class="upload-area">
+      <label class="file-label" for="image-uploads">
+        Select Multiple Images (max 5)
+      </label>
+      <input 
+        id="image-uploads"
+        type="file" 
+        multiple
+        accept="image/*" 
+        bind:files={imageFiles}
+        on:change={handleImagesChange}
+        disabled={isLoading}
+      />
+      <div class="previews">
+        {#each previewImageUrls as url, i}
+          <div class="preview-card">
+            <img src={url} alt="Preview {i+1}" />
+            <button on:click={() => removeImage(i)} type="button">×</button>
+          </div>
+        {/each}
+      </div>
+      <button on:click={analyzeMultiImages} disabled={!canAnalyze || isLoading}>
+        {isLoading ? 'Analyzing Images...' : 'Combine & Analyze Images'}
+      </button>
+    </div>
+
+    <!-- Legacy single image upload (optional, can be removed if not needed) -->
+    <div class="upload-area" style="margin-top:2rem;">
       <label class="file-label">
         <input 
           type="file" 
@@ -284,7 +365,6 @@
         </button>
       </div>
     {/if}
-
     {#if streaming && streamingXml}
       <div class="xml-output">
         <div class="title">Streaming XML output:</div>
@@ -299,6 +379,20 @@
         {:else}
           {error}
         {/if}
+      </div>
+    {/if}
+
+    <!-- Multi-image result -->
+    {#if multiResult}
+      <div class="result-card card">
+        <h2>Combined Location Result:</h2>
+        <p class="location">{multiResult.city}, {multiResult.country}</p>
+        <p class="coordinates">Coordinates: {multiResult.latitude}, {multiResult.longitude}</p>
+        <p class="confidence">Confidence: {multiResult.confidence}%</p>
+        <MapView 
+          lat={multiResult.latitude} 
+          lng={multiResult.longitude} 
+        />
       </div>
     {/if}
 
@@ -654,4 +748,39 @@
   .result-card p.coordinates {
     word-break: break-word;
   }
+/* Multi-image preview styles */
+.preview-card {
+  position: relative;
+  display: inline-block;
+  margin: 10px;
+}
+
+.preview-card img {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border: 2px solid var(--color-primary);
+  border-radius: var(--border-radius-sm);
+}
+
+.preview-card button {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  background: var(--color-danger);
+  color: white;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.previews {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 15px;
+}
 </style>
