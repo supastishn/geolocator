@@ -31,6 +31,10 @@
   let canAnalyze = false;
   let multiResult = null;
 
+  // Context input state
+  let contextText = '';
+  let multiContextText = '';
+
   $: canAnalyze = imageFiles.length > 1 && imageFiles.length <= MAX_IMAGES;
 
   // Single image state (legacy)
@@ -128,7 +132,7 @@
       const base64Images = await Promise.all(
         imageFiles.map(file => readFileAsBase64(file))
       );
-      multiResult = await getLocationMulti(base64Images);
+      multiResult = await getLocationMulti(base64Images, null, undefined, multiContextText);
     } catch (e) {
       error = e.message;
     }
@@ -204,7 +208,8 @@
           }
         },
         null, // mapUrl
-        modelName // Pass selected model
+        modelName, // Pass selected model
+        contextText // Pass context
       );
       finalXml = streamingXml;
       result = location;
@@ -260,7 +265,8 @@
           }
         },
         mapImage, // satellite image
-        modelName // Pass selected model
+        modelName, // Pass selected model
+        contextText // Pass context
       );
       finalXml = streamingXml;
       result = location;
@@ -330,6 +336,15 @@
           </div>
         {/each}
       </div>
+      <div class="context-input">
+        <label>Additional Context (optional):</label>
+        <input 
+          type="text" 
+          placeholder="e.g. Tourism city in France, taken in summer 2021" 
+          bind:value={multiContextText}
+          disabled={isLoading}
+        />
+      </div>
       <button on:click={analyzeMultiImages} disabled={!canAnalyze || isLoading}>
         {isLoading ? 'Analyzing Images...' : 'Combine & Analyze Images'}
       </button>
@@ -346,6 +361,15 @@
         />
         <span>{imageFile && imageFile.length ? imageFile[0].name : 'Choose an image...'}</span>
       </label>
+      <div class="context-input">
+        <label>Additional Context (optional):</label>
+        <input 
+          type="text" 
+          placeholder="e.g. Tourism city in France, taken in summer 2021" 
+          bind:value={contextText}
+          disabled={isLoading}
+        />
+      </div>
       <button on:click={handleSubmit} disabled={isLoading || !imageFile}>
         {isLoading ? 'Analyzing Location...' : 'Find Location'}
       </button>
@@ -782,5 +806,24 @@
   display: flex;
   flex-wrap: wrap;
   margin-top: 15px;
+}
+.context-input {
+  margin: 1.5rem 0;
+}
+
+.context-input label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.context-input input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
 }
 </style>

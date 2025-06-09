@@ -33,22 +33,28 @@ const MULTI_IMAGE_PROMPT = SYSTEM_PROMPT + `
 /**
  * Helper to build the user message for OpenAI API.
  * If isIterate is true, sends both the original and satellite images.
+ * Accepts context string.
  */
-function buildMessage(imageData, mapUrl, isIterate = false) {
+function buildMessage(imageData, mapUrl, isIterate = false, context = '') {
   const confidenceInstruction = "\n5. Confidence score (0-100) based on your certainty MUST be provided in <confidence> tag";
   if (!isIterate || !mapUrl) {
+    const baseText = "Identify this location";
+    const contextText = context ? ` with context: "${context}"` : '';
     return [
       { 
         type: "text", 
-        text: `Identify this location:${confidenceInstruction}` 
+        text: `${baseText}${contextText}.${confidenceInstruction}` 
       },
       { type: "image_url", image_url: { url: imageData } }
     ];
   }
+  // For iteration, include context as well
+  const baseText = "Original photo and satellite view";
+  const contextText = context ? ` with context: "${context}"` : '';
   return [
     { 
       type: "text", 
-      text: `Original photo and satellite view:${confidenceInstruction}` 
+      text: `${baseText}${contextText}.${confidenceInstruction}` 
     },
     { type: "image_url", image_url: { url: imageData } },
     { type: "image_url", image_url: { url: mapUrl } }
@@ -61,9 +67,10 @@ function buildMessage(imageData, mapUrl, isIterate = false) {
  * @param {(xmlChunk: string) => void} onStreamChunk - callback for streaming XML output
  * @param {string|null} mapUrl - optional satellite image url for iteration
  * @param {string} modelName - Gemini model name to use (optional, defaults to 'gemini-2.0-flash')
+ * @param {string} context - optional user context
  * @returns {Promise<object|null>}
  */
-export async function getLocation(imageData, onStreamChunk = null, mapUrl = null, modelName = 'gemini-2.0-flash') {
+export async function getLocation(imageData, onStreamChunk = null, mapUrl = null, modelName = 'gemini-2.0-flash', context = '') {
   const settingsValue = get(settings);
   const authState = get(auth);
 
@@ -76,7 +83,8 @@ export async function getLocation(imageData, onStreamChunk = null, mapUrl = null
     // Handle Gemini function call
     const response = await callGeminiFunction(
       imageData,
-      modelName // Pass selected model
+      modelName, // Pass selected model
+      context // Pass context
     );
     if (!response.ok) {
       let err = 'Failed to get location (Gemini)';
@@ -122,7 +130,7 @@ export async function getLocation(imageData, onStreamChunk = null, mapUrl = null
       content: SYSTEM_PROMPT
     }, {
       role: "user",
-      content: buildMessage(imageData, mapUrl, !!mapUrl)
+      content: buildMessage(imageData, mapUrl, !!mapUrl, context)
     }];
 
     // Use OpenAI streaming API
@@ -211,8 +219,14 @@ async function getSatelliteImage(lat, lon) {
   return `https://fra.cloud.appwrite.io/v1/projects/geolocatr/functions/get-mapbox/executions/${execution.$id}/output`;
 }
 
-// Multi-image geolocation function
-export async function getLocationMulti(imageDatas, onStreamChunk = null, modelName = 'gemini-2.0-flash') {
+/**
+ * Multi-image geolocation function
+ * @param {string[]} imageDatas
+ * @param {(xmlChunk: string) => void} onStreamChunk
+ * @param {string} modelName
+ * @param {string} context
+ */
+export async function getLocationMulti(imageDatas, onStreamChunk = null, modelName = 'gemini-2.0-flash', context = '') {
   const settingsValue = get(settings);
   const authState = get(auth);
 
@@ -225,7 +239,8 @@ export async function getLocationMulti(imageDatas, onStreamChunk = null, modelNa
     // Gemini multi-image function call
     const response = await callGeminiFunctionMulti(
       imageDatas,
-      modelName // Pass selected model
+      modelName, // Pass selected model
+      context // Pass context
     );
     if (!response.ok) {
       let err = 'Failed to get location (Gemini Multi)';
@@ -272,7 +287,7 @@ export async function getLocationMulti(imageDatas, onStreamChunk = null, modelNa
       content: [
         { 
           type: "text", 
-          text: "Analyze these RELATED location images:" 
+          text: `Analyze these RELATED location images${context ? ` with context: "${context}"` : ''}:` 
         },
         ...imageDatas.map(data => ({
           type: "image_url",
@@ -356,9 +371,10 @@ export async function getLocationMulti(imageDatas, onStreamChunk = null, modelNa
  * Gemini function call helper for multi-image using Appwrite Functions SDK.
  * @param {string[]} base64Images
  * @param {string} modelName
+ * @param {string} context
  * @returns {Promise<{ok: boolean, json: function(): Promise<any>}>}
  */
-async function callGeminiFunctionMulti(base64Images, modelName) {
+async function callGeminiFunctionMulti(base64Images, modelName, context = '') {
   // Remove data URL prefix for each image
   const images = base64Images.map(img =>
     img.startsWith('data:') ? img.split(',')[1] : img
@@ -366,7 +382,8 @@ async function callGeminiFunctionMulti(base64Images, modelName) {
 
   const payload = JSON.stringify({
     images,
-    model: modelName // Use selected model
+    model: modelName, // Use selected model
+    context
   });
 
   try {
@@ -404,9 +421,10 @@ async function callGeminiFunctionMulti(base64Images, modelName) {
  * Gemini function call helper using Appwrite Functions SDK.
  * @param {string} base64Image
  * @param {string} modelName
+ * @param {string} context
  * @returns {Promise<{ok: boolean, json: function(): Promise<any>}>}
  */
-async function callGeminiFunction(base64Image, modelName) {
+async function callGeminiFunction(base64Image, modelName, context = '') {
   // Remove data URL prefix
   const base64Data = base64Image.startsWith('data:')
     ? base64Image.split(',')[1]
@@ -414,7 +432,8 @@ async function callGeminiFunction(base64Image, modelName) {
 
   const payload = JSON.stringify({
     image: base64Data,
-    model: modelName // Use selected model
+    model: modelName, // Use selected model
+    context
   });
 
   try {

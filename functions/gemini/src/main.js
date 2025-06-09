@@ -51,14 +51,20 @@ export default async ({ req, res, log, error }) => {
       return res.json({ error: "GEMINI_API_KEY not set" }, 500);
     }
 
+    // Handle context from body
+    const userContext = typeof body.context === 'string' && body.context.trim() ? body.context.trim() : '';
+
     let payload;
     if (images.length > 0) {
       // Multi-image payload
+      const userPrompt = userContext
+        ? `Identify location from these images. Context: ${userContext}`
+        : "Identify location from these images";
       payload = {
         contents: [{
           parts: [
             { text: SYSTEM_PROMPT },
-            { text: "Identify location from MULTIPLE related images" },
+            { text: userPrompt },
             ...images.map(image => ({
               inline_data: {
                 mime_type: "image/jpeg",
@@ -77,13 +83,14 @@ export default async ({ req, res, log, error }) => {
       if (!base64Image) {
         return res.json({ error: "Missing 'image' field in request" }, 400);
       }
+      const userPrompt = userContext
+        ? `Identify this location. Context: ${userContext}`
+        : "Identify this location";
       payload = {
         contents: [{
           parts: [
             { text: SYSTEM_PROMPT },
-            {
-              text: "Identify the location from this satellite image"
-            },
+            { text: userPrompt },
             {
               inline_data: {
                 mime_type: "image/jpeg",
