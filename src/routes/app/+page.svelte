@@ -24,18 +24,13 @@
     }
   });
 
-  // Multi-image state
   const MAX_IMAGES = 5;
   let imageFiles = [];
   let previewImageUrls = [];
   let canAnalyze = false;
-  let multiResult = null;
-
-  // Context input state
   let contextText = '';
-  let multiContextText = '';
 
-  $: canAnalyze = imageFiles.length > 1 && imageFiles.length <= MAX_IMAGES;
+  $: canAnalyze = imageFiles.length >= 1 && imageFiles.length <= MAX_IMAGES;
 
   // Single image state (legacy)
   let imageFile;
@@ -123,48 +118,8 @@
     previewImageUrls = previewImageUrls.slice(0, i).concat(previewImageUrls.slice(i + 1));
   }
 
-  // Multi-image analysis
-  async function analyzeMultiImages() {
-    isLoading = true;
-    error = null;
-    multiResult = null;
-    try {
-      const base64Images = await Promise.all(
-        imageFiles.map(file => readFileAsBase64(file))
-      );
-      multiResult = await getLocationMulti(base64Images, null, undefined, multiContextText);
-    } catch (e) {
-      error = e.message;
-    }
-    isLoading = false;
-  }
-
-  // Handle file input change for preview and validation (legacy single)
-  function handleImageChange(e) {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-
-    // Security: validate file size and type
-    if (files[0].size > 5 * 1024 * 1024) { // 5MB limit
-      error = "Image too large (max 5MB)";
-      return;
-    }
-    if (!['image/jpeg', 'image/png', 'image/webp'].includes(files[0].type)) {
-      error = "Unsupported format (use JPEG, PNG or WEBP)";
-      return;
-    }
-
-    imageFile = files;
-    if (previewImageUrl) {
-      URL.revokeObjectURL(previewImageUrl);
-    }
-    previewImageUrl = URL.createObjectURL(files[0]);
-  }
-
-  // Initial submit: only 1 iteration, show info, allow user to iterate
-  const handleSubmit = async () => {
-    if (!imageFile) return;
-
+  // Unified analysis function for single or multiple images
+  async function analyzeImages() {
     isLoading = true;
     error = null;
     result = null;
@@ -177,46 +132,63 @@
     city = '';
     country = '';
     xmlDoc = null;
-    mapImage = null; // stores the satellite image URL for iteration
-    imageBase64 = null; // stores the original image base64 for iteration
-    if (previewImageUrl) {
-      URL.revokeObjectURL(previewImageUrl);
-      previewImageUrl = null;
-    }
+    mapImage = null;
 
     try {
-      imageBase64 = await readFileAsBase64(imageFile[0]);
-      // Capture current value
-      const modelName = $settings.geminiModel;
-      // Only do 1 iteration for initial run
-      const location = await getLocation(
-        imageBase64,
-        async (xml) => {
-          streamingXml = xml;
-          const fields = parseXmlFields(xml);
-          thinking = fields.thinking;
-          latitude = fields.latitude;
-          longitude = fields.longitude;
-          city = fields.city;
-          country = fields.country;
-          xmlDoc = fields.xmlDoc;
-          confidence = fields.confidence;
-
-          // If satellite is requested, store coordinates
-          if (fields.hasSatellite && latitude && longitude) {
-            mapImage = await getSatelliteImage(latitude, longitude);
-          }
-        },
-        null, // mapUrl
-        modelName, // Pass selected model
-        contextText // Pass context
+      const base64Images = await Promise.all(
+        imageFiles.map(file => readFileAsBase64(file))
       );
+
+      if (base64Images.length === 1) {
+        result = await getLocation(
+          base64Images[0],
+          async (xml) => {
+            streamingXml = xml;
+            const fields = parseXmlFields(xml);
+            thinking = fields.thinking;
+            latitude = fields.latitude;
+            longitude = fields.longitude;
+            city = fields.city;
+            country = fields.country;
+            xmlDoc = fields.xmlDoc;
+            confidence = fields.confidence;
+
+            if (fields.hasSatellite && latitude && longitude) {
+              mapImage = await getSatelliteImage(latitude, longitude);
+            }
+          },
+          null,
+          $settings.model,
+          contextText
+        );
+      } else {
+        result = await getLocationMulti(
+          base64Images,
+          async (xml) => {
+            streamingXml = xml;
+            const fields = parseXmlFields(xml);
+            thinking = fields.thinking;
+            latitude = fields.latitude;
+            longitude = fields.longitude;
+            city = fields.city;
+            country = fields.country;
+            xmlDoc = fields.xmlDoc;
+            confidence = fields.confidence;
+
+            if (fields.hasSatellite && latitude && longitude) {
+              mapImage = await getSatelliteImage(latitude, longitude);
+            }
+          },
+          $settings.model,
+          contextText
+        );
+      }
+
       finalXml = streamingXml;
-      result = location;
       isLoading = false;
       streaming = false;
 
-      if (!location && !mapImage) {
+      if (!result && !mapImage) {
         error = "Failed to identify location. Please try another image.";
       }
     } catch (err) {
@@ -224,7 +196,7 @@
       isLoading = false;
       streaming = false;
     }
-  };
+  }
 
   // User triggers next iteration (satellite)
   const handleIterate = async () => {
@@ -285,7 +257,6 @@
 
   import { onDestroy } from 'svelte';
   onDestroy(() => {
-    if (previewImageUrl) URL.revokeObjectURL(previewImageUrl);
     previewImageUrls.forEach(url => URL.revokeObjectURL(url));
   });
 </script>
@@ -314,10 +285,10 @@
       </select>
     </div>
     
-    <!-- Multi-image upload section -->
+    <!-- Consolidated image upload section -->
     <div class="upload-area">
       <label class="file-label" for="image-uploads">
-        Select Multiple Images (max 5)
+        Select 1 to 5 Images
       </label>
       <input 
         id="image-uploads"
@@ -341,54 +312,15 @@
         <input 
           type="text" 
           placeholder="e.g. Tourism city in France, taken in summer 2021" 
-          bind:value={multiContextText}
-          disabled={isLoading}
-        />
-      </div>
-      <button on:click={analyzeMultiImages} disabled={!canAnalyze || isLoading}>
-        {isLoading ? 'Analyzing Images...' : 'Combine & Analyze Images'}
-      </button>
-    </div>
-
-    <!-- Legacy single image upload (optional, can be removed if not needed) -->
-    <div class="upload-area" style="margin-top:2rem;">
-      <label class="file-label">
-        <input 
-          type="file" 
-          accept="image/*" 
-          on:change={handleImageChange}
-          disabled={isLoading}
-        />
-        <span>{imageFile && imageFile.length ? imageFile[0].name : 'Choose an image...'}</span>
-      </label>
-      <div class="context-input">
-        <label>Additional Context (optional):</label>
-        <input 
-          type="text" 
-          placeholder="e.g. Tourism city in France, taken in summer 2021" 
           bind:value={contextText}
           disabled={isLoading}
         />
       </div>
-      <button on:click={handleSubmit} disabled={isLoading || !imageFile}>
-        {isLoading ? 'Analyzing Location...' : 'Find Location'}
+      <button on:click={analyzeImages} disabled={isLoading || !canAnalyze}>
+        {isLoading ? 'Analyzing...' : 'Analyze Location'}
       </button>
     </div>
 
-    {#if previewImageUrl}
-      <div class="image-preview-card card">
-        <h3>Image Preview</h3>
-        <img src={previewImageUrl} alt="Upload preview" class="preview-image" />
-        <br />
-        <button on:click={() => {
-          if (previewImageUrl) URL.revokeObjectURL(previewImageUrl);
-          previewImageUrl = null;
-          imageFile = null;
-        }} class="remove-button">
-          Remove Image
-        </button>
-      </div>
-    {/if}
     {#if streaming && streamingXml}
       <div class="xml-output">
         <div class="title">Streaming XML output:</div>
