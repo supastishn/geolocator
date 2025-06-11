@@ -338,20 +338,6 @@
       </div>
     {/if}
 
-    <!-- Multi-image result -->
-    {#if multiResult}
-      <div class="result-card card">
-        <h2>Combined Location Result:</h2>
-        <p class="location">{multiResult.city}, {multiResult.country}</p>
-        <p class="coordinates">Coordinates: {multiResult.latitude}, {multiResult.longitude}</p>
-        <p class="confidence">Confidence: {multiResult.confidence}%</p>
-        <MapView 
-          lat={multiResult.latitude} 
-          lng={multiResult.longitude} 
-        />
-      </div>
-    {/if}
-
     <!-- Analysis results -->
     {#if !isLoading && (thinking || latitude || longitude)}
       <div class="ai-info card">
