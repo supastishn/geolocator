@@ -29,6 +29,7 @@
   let previewImageUrls = [];
   let canAnalyze = false;
   let contextText = '';
+  let fileInput;
 
   $: canAnalyze = imageFiles.length >= 1 && imageFiles.length <= MAX_IMAGES;
 
@@ -287,18 +288,23 @@
     
     <!-- Consolidated image upload section -->
     <div class="upload-area">
-      <label class="file-label" for="image-uploads">
-        Select 1 to 5 Images
-      </label>
       <input 
-        id="image-uploads"
+        bind:this={fileInput}
         type="file" 
         multiple
         accept="image/*" 
-        bind:files={imageFiles}
         on:change={handleImagesChange}
         disabled={isLoading}
+        style="display: none;" 
       />
+      <button 
+        type="button"
+        on:click={() => fileInput.click()}
+        class="file-upload-button"
+        disabled={isLoading}
+      >
+        Select Images
+      </button>
       <div class="previews">
         {#each previewImageUrls as url, i}
           <div class="preview-card">
@@ -743,5 +749,35 @@
   border-radius: var(--border-radius-sm);
   background: var(--color-surface);
   color: var(--color-text);
+}
+
+/* File upload button styles */
+.file-upload-button {
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  padding: 0.75rem 1.5rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 1rem;
+  box-shadow: var(--shadow-sm);
+  font-size: 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.file-upload-button:hover:not(:disabled) {
+  background: var(--color-surface-2);
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.file-upload-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 </style>
