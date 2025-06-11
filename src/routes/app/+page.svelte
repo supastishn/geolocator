@@ -324,11 +324,12 @@
           </div>
         {/each}
       </div>
-      <div class="context-input">
+      <!-- Context Input Section -->
+      <div>
         <label>Additional Context (optional):</label>
         <input 
           type="text" 
-          placeholder="e.g. Tourism city in France, taken in summer 2021" 
+          placeholder="e.g. Near famous landmarks, region features, or other clues" 
           bind:value={contextText}
           disabled={isLoading}
         />
