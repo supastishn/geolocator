@@ -53,7 +53,6 @@
   let mapImage = null; // stores the satellite image URL for iteration
   let imageBase64 = null; // stores the original image base64 for iteration
 
-  // (multiResult variable removed)
   // Helper to parse XML for <thinking>, <latitude>, <longitude>, <city>, <country>
   function parseXmlFields(xml) {
     try {
