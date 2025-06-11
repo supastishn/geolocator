@@ -24,6 +24,11 @@
     }
   });
 
+  // Enforce Lite model for non-logged users
+  $: if (!$auth && $settings.model !== 'gemini-2.0-flash-lite') {
+    $settings.model = 'gemini-2.0-flash-lite';
+  }
+
   const MAX_IMAGES = 5;
   let imageFiles = [];
   let previewImageUrls = [];
@@ -278,12 +283,18 @@
       <select 
         id="model" 
         bind:value={$settings.model}
-        disabled={isLoading}
+        disabled={isLoading || !$auth}
       >
         <option value="gemini-2.0-flash-lite">Lite</option>
         <option value="gemini-2.0-flash">Medium</option>
         <option value="gemini-2.5-flash-preview-05-20">Pro</option>
       </select>
+      {#if !$auth}
+        <div class="login-warning">
+          Non-logged in users may only use the Lite model.
+          <a href="{base}/login">Login</a> for more options.
+        </div>
+      {/if}
     </div>
     
     <!-- Consolidated image upload section -->
@@ -779,5 +790,23 @@
 .file-upload-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* Login warning for non-logged users on model selector */
+.login-warning {
+  background: var(--color-warning);
+  color: #000;
+  padding: 0.5rem 1rem;
+  border-radius: var(--border-radius-sm);
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  display: flex;
+  gap: 0.25rem;
+}
+
+.login-warning a {
+  color: var(--color-primary);
+  font-weight: 600;
+  text-decoration: underline;
 }
 </style>
